@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blog post about testing Real-Time Reinforcement Learning in Duckiematrix - A Duckietown Project">
+    <title>Real-Time RL in Duckiematrix | Duckietown Project</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="#" class="logo">Duckietown</a>
+                <ul class="nav-links">
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#methodology">Methodology</a></li>
+                    <li><a href="#results">Results</a></li>
+                    <li><a href="#conclusion">Conclusion</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <article class="blog-post">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <span class="category-badge">Research Project</span>
+                    <h1 class="hero-title">Testing Real-Time Reinforcement Learning in Duckiematrix</h1>
+                    <p class="hero-subtitle">Exploring the challenges and opportunities of real-time RL in simulated autonomous driving environments</p>
+                    <div class="hero-meta">
+                        <span class="author">Duckietown Research Team</span>
+                        <span class="date">2024</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Introduction -->
+            <section id="introduction" class="content-section">
+                <h2>Introduction</h2>
+                <p>
+                    Reinforcement Learning (RL) has shown remarkable success in various domains, from game playing to robotics. 
+                    However, deploying RL algorithms in real-time scenarios presents unique challenges, particularly in safety-critical 
+                    applications like autonomous driving. This blog post explores our journey of testing Real-Time Reinforcement Learning 
+                    in the Duckiematrix simulation environment.
+                </p>
+                <p>
+                    Duckiematrix provides a realistic simulation platform for autonomous vehicles, allowing researchers to test and 
+                    validate algorithms before deployment on physical robots. Our project focuses on understanding how RL agents 
+                    perform under real-time constraints and how we can optimize them for practical applications.
+                </p>
+            </section>
+
+            <!-- Methodology -->
+            <section id="methodology" class="content-section">
+                <h2>Methodology</h2>
+                <p>
+                    Our approach combines state-of-the-art RL algorithms with real-time performance optimization techniques. 
+                    We've designed experiments to evaluate:
+                </p>
+                <ul class="feature-list">
+                    <li>Latency and response time of RL agents</li>
+                    <li>Performance trade-offs between accuracy and speed</li>
+                    <li>Robustness under varying computational constraints</li>
+                    <li>Transfer learning from simulation to real-world scenarios</li>
+                </ul>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>Example: Real-Time RL Agent</span>
+                    </div>
+                    <pre><code>class RealTimeRLAgent:
+    def __init__(self, model_path, max_latency_ms=100):
+        self.model = load_model(model_path)
+        self.max_latency = max_latency_ms
+    
+    def predict(self, observation):
+        start_time = time.time()
+        action = self.model.predict(observation)
+        latency = (time.time() - start_time) * 1000
+        
+        if latency > self.max_latency:
+            logger.warning(f"Latency exceeded: {latency}ms")
+        
+        return action</code></pre>
+                </div>
+            </section>
+
+            <!-- Key Findings -->
+            <section id="results" class="content-section">
+                <h2>Key Findings</h2>
+                <p>
+                    Our experiments revealed several important insights about real-time RL performance in Duckiematrix:
+                </p>
+                <div class="findings-grid">
+                    <div class="finding-card">
+                        <div class="finding-icon">⚡</div>
+                        <h3>Latency Optimization</h3>
+                        <p>We achieved sub-100ms inference times while maintaining competitive performance through model quantization and efficient architectures.</p>
+                    </div>
+                    <div class="finding-card">
+                        <div class="finding-icon">🎯</div>
+                        <h3>Accuracy Trade-offs</h3>
+                        <p>Careful balance between model complexity and inference speed is crucial for real-time applications.</p>
+                    </div>
+                    <div class="finding-card">
+                        <div class="finding-icon">🔄</div>
+                        <h3>Sim-to-Real Transfer</h3>
+                        <p>Duckiematrix provides a robust foundation for sim-to-real transfer with proper domain adaptation techniques.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Technical Details -->
+            <section class="content-section">
+                <h2>Technical Implementation</h2>
+                <p>
+                    The implementation leverages modern deep RL frameworks and optimization techniques. We utilized:
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-badge">PyTorch</span>
+                    <span class="tech-badge">Gymnasium</span>
+                    <span class="tech-badge">Duckietown</span>
+                    <span class="tech-badge">Duckiematrix</span>
+                    <span class="tech-badge">TensorRT</span>
+                </div>
+            </section>
+
+            <!-- Conclusion -->
+            <section id="conclusion" class="content-section">
+                <h2>Conclusion</h2>
+                <p>
+                    Real-Time Reinforcement Learning in Duckiematrix opens up exciting possibilities for deploying intelligent 
+                    autonomous systems. Our research demonstrates that with careful optimization and design choices, RL agents 
+                    can operate effectively under real-time constraints while maintaining high performance.
+                </p>
+                <p>
+                    Future work will focus on further reducing latency, improving robustness, and exploring more complex 
+                    multi-agent scenarios in the Duckiematrix environment.
+                </p>
+            </section>
+
+            <!-- References/Resources -->
+            <section class="content-section">
+                <h2>Resources</h2>
+                <ul class="resource-list">
+                    <li><a href="https://www.duckietown.org/" target="_blank">Duckietown Project</a></li>
+                    <li><a href="https://github.com/duckietown" target="_blank">Duckietown GitHub</a></li>
+                    <li><a href="#" target="_blank">Project Repository</a></li>
+                </ul>
+            </section>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Duckietown Research Project. All rights reserved.</p>
+            <p class="footer-note">Built with ❤️ for autonomous driving research</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
