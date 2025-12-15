@@ -40,6 +40,22 @@
                 </div>
             </section>
 
+            <!-- Abstract -->
+            <section id="introduction" class="content-section">
+                <h2>Abstract</h2>
+                <p>
+                    Reinforcement Learning (RL) algorithms often model agent-environment interaction in an idealized manner: the agent observes the 
+                    state of the world, selects an action, the environment reacts instantly, and the agent receives a reward. This abstraction 
+                    is powerful, but, in contunuous-time scenarios, neglects a critical assumption: time. In real-world autonomous systems, 
+                    particularly in the self-driving vehicle domain, time is never negligible. Sensing, decision-making and actuation all introduce a 
+                    delay. When the environment is dynamic, these delays break the fundamental assumptions behind classical RL algorithms and Markov 
+                    Decision Process (MDP) modelling. This project explores this gap through a pragmatic approach: How can we model dynamic scenarios? 
+                    How does the induced delay affect the algorithm performance? How should we measure this performance difference? 
+                    Our study revealed that <span class="highlight">Main Results</span>
+                </p>
+            </section>
+
+
             <!-- Introduction -->
             <section id="introduction" class="content-section">
                 <h2>Introduction</h2>
@@ -59,6 +75,11 @@
             <!-- Methodology -->
             <section id="methodology" class="content-section">
                 <h2>Methodology</h2>
+                <p class="highlight">
+                    How should we measure the gap in performance? Is it possible to train the model and it's just longer? 
+                    Does the max performance degrades? From which delay does the task become impossible? What did we choose this or that method?
+                </p>
+
                 <p>
                     Our approach combines state-of-the-art RL algorithms with real-time performance optimization techniques. 
                     We've designed experiments to evaluate:
@@ -93,6 +114,9 @@
             <!-- Key Findings -->
             <section id="results" class="content-section">
                 <h2>Key Findings</h2>
+                <h3 class="highlight">Experiment 1</h3>
+                <h3 class="highlight">Experiment 2</h3>
+                <h3 class="highlight">Experiment 3</h3>
                 <p>
                     Our experiments revealed several important insights about real-time RL performance in Duckiematrix:
                 </p>

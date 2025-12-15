@@ -41,6 +41,13 @@ body {
     background-color: rgba(255, 255, 255, 0.95);
 }
 
+.highlight {
+    background: #fff3cd;
+    color: #92400e;
+    padding: 0.1em 0.25em;
+    border-radius: 0.25em;
+}
+
 .nav-container {
     max-width: var(--max-width);
     margin: 0 auto;
