@@ -401,6 +401,24 @@ body {
     .code-block code {
         font-size: 0.8rem;
     }
+
+    .data-table {
+        font-size: 0.85rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .plot-image {
+        padding: 2rem 1rem;
+        min-height: 200px;
+    }
+
+    .plot-placeholder {
+        padding: 1.5rem;
+    }
 }
 
 /* Smooth Scrolling */
@@ -412,5 +430,165 @@ html {
 ::selection {
     background: var(--primary-color);
     color: white;
+}
+
+/* Tables */
+.table-container {
+    margin: 2rem 0;
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-md);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-primary);
+    font-size: 0.95rem;
+}
+
+.data-table thead {
+    background: var(--primary-color);
+    color: white;
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.data-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.data-table td {
+    padding: 1rem;
+    color: var(--text-primary);
+}
+
+.data-table tbody td:first-child {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+/* Math Formulas */
+.math-formula {
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.math-formula p {
+    margin: 0;
+    font-size: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+}
+
+.math-formula em {
+    font-style: normal;
+}
+
+/* Plot Placeholders */
+.plot-placeholder {
+    margin: 3rem 0;
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    transition: border-color 0.3s ease;
+}
+
+.plot-placeholder:hover {
+    border-color: var(--primary-color);
+}
+
+.plot-content {
+    text-align: center;
+}
+
+.plot-label {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.plot-image {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 4rem 2rem;
+    margin: 1.5rem 0;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.plot-image p {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin: 0;
+    text-align: center;
+}
+
+.plot-caption {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 1rem;
+    text-align: left;
+    line-height: 1.6;
+}
+
+/* Ordered Lists */
+.numbered-list {
+    margin: 1.5rem 0;
+    padding-left: 2rem;
+    list-style: decimal;
+}
+
+.numbered-list li {
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    line-height: 1.8;
+}
+
+.numbered-list li em {
+    font-style: normal;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-secondary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.95em;
+}
+
+.content-section ol {
+    margin: 1.5rem 0;
+    padding-left: 2rem;
+}
+
+.content-section ol li {
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    line-height: 1.8;
 }
 

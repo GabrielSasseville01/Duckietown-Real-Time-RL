@@ -18,7 +18,9 @@
                 <ul class="nav-links">
                     <li><a href="#abstract">Abstract</a></li>
                     <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#theory">Theory</a></li>
                     <li><a href="#methodology">Methodology</a></li>
+                    <li><a href="#experiments">Experiments</a></li>
                     <li><a href="#results">Results</a></li>
                     <li><a href="#conclusion">Conclusion</a></li>
                 </ul>
@@ -63,80 +65,341 @@
                 <p>
                     Reinforcement Learning (RL) has shown remarkable success in various domains, from game playing to robotics. 
                     However, deploying RL algorithms in real-time scenarios presents unique challenges, particularly in safety-critical 
-                    applications like autonomous driving. This blog post explores our journey of testing Real-Time Reinforcement Learning 
-                    in the Duckiematrix simulation environment.
+                    applications like autonomous driving. Traditional RL algorithms assume that the environment remains static during 
+                    action selection, which is often not the case in real-world applications where computation time introduces delays.
                 </p>
                 <p>
-                    Duckiematrix provides a realistic simulation platform for autonomous vehicles, allowing researchers to test and 
-                    validate algorithms before deployment on physical robots. Our project focuses on understanding how RL agents 
-                    perform under real-time constraints and how we can optimize them for practical applications.
+                    This blog post explores our investigation of Real-Time Reinforcement Learning in the Duckietown simulation environment. 
+                    We examine how significant delays in action computation—specifically, the time required for a neural network forward 
+                    pass to sample an action—impact agent performance. By simulating these delays in Duckietown's gym mode, we can 
+                    systematically study the effects of real-time constraints on RL algorithms.
+                </p>
+            </section>
+
+            <!-- Theory Section -->
+            <section id="theory" class="content-section">
+                <h2>Theory: Real-Time Reinforcement Learning</h2>
+                
+                <h3>The Problem with Classical MDPs</h3>
+                <p>
+                    Markov Decision Processes (MDPs), the mathematical framework underlying most algorithms in Reinforcement Learning, 
+                    are often used in a way that wrongfully assumes that the state of an agent's environment does not change during 
+                    action selection. As noted by Ramstedt and Pal in their seminal work on Real-Time RL, this assumption breaks down 
+                    in real-world scenarios where computation time is non-negligible.
+                </p>
+                <p>
+                    In classical RL, the typical interaction loop assumes:
+                </p>
+                <ol class="numbered-list">
+                    <li>Agent observes state <em>s<sub>t</sub></em></li>
+                    <li>Agent computes action <em>a<sub>t</sub></em> (assumed instantaneous)</li>
+                    <li>Environment transitions to state <em>s<sub>t+1</sub></em></li>
+                </ol>
+                <p>
+                    However, in real-time scenarios, there is a delay <em>δ</em> between observing the state and executing the action. 
+                    During this delay, the environment continues to evolve, meaning the action computed for state <em>s<sub>t</sub></em> 
+                    is actually applied to a different state <em>s<sub>t+δ</sub></em>. This mismatch can lead to suboptimal or even 
+                    dangerous behavior, especially in safety-critical applications.
+                </p>
+
+                <h3>The Real-Time MDP Formulation</h3>
+                <p>
+                    Ramstedt and Pal introduced a new framework where states and actions evolve simultaneously. The key insight is to 
+                    modify the MDP formulation to account for the temporal delay between observation and action execution.
+                </p>
+                <p>
+                    In our implementation, we address this by conditioning the policy on both the previous state and the previous action 
+                    when sampling a new action. This modification allows the policy to learn to predict state evolution intrinsically 
+                    within the model, effectively compensating for the advancing of the state during action computation time.
+                </p>
+                <p>
+                    Formally, instead of the classical policy <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>, we use:
+                </p>
+                <div class="math-formula">
+                    <p><em>π(a<sub>t</sub> | s<sub>t</sub>, a<sub>t-1</sub>)</em></p>
+                </div>
+                <p>
+                    By conditioning on the previous action <em>a<sub>t-1</sub></em>, the policy can learn to anticipate how the state 
+                    will evolve during the computation delay, effectively learning an internal model of the environment dynamics. This 
+                    enables the agent to select actions that will be appropriate for the state that exists when the action is actually 
+                    executed, rather than the state that existed when the action computation began.
+                </p>
+                <p>
+                    This approach is particularly relevant for neural network policies (such as those used in Soft Actor-Critic (SAC)), 
+                    where the forward pass through the policy network introduces a measurable delay. The policy network can learn to 
+                    incorporate information about the previous action to make better predictions about future states.
                 </p>
             </section>
 
             <!-- Methodology -->
             <section id="methodology" class="content-section">
                 <h2>Methodology</h2>
+                
+                <h3>Research Questions</h3>
                 <p class="highlight">
                     How should we measure the gap in performance? Is it possible to train the model and it's just longer? 
                     Does the max performance degrades? From which delay does the task become impossible? What did we choose this or that method?
                 </p>
 
+                <h3>Duckietown Environment</h3>
                 <p>
-                    Our approach combines state-of-the-art RL algorithms with real-time performance optimization techniques. 
-                    We've designed experiments to evaluate:
+                    Duckietown provides a realistic simulation platform for autonomous vehicles, allowing researchers to test and 
+                    validate algorithms in a controlled environment. The platform offers two main modes of operation:
                 </p>
                 <ul class="feature-list">
-                    <li>Latency and response time of RL agents</li>
-                    <li>Performance trade-offs between accuracy and speed</li>
-                    <li>Robustness under varying computational constraints</li>
-                    <li>Transfer learning from simulation to real-world scenarios</li>
+                    <li><strong>Gym Mode:</strong> A standard OpenAI Gym interface that allows for controlled, step-by-step execution 
+                        where we can artificially introduce delays to simulate computation time.</li>
+                    <li><strong>Real-Time Mode:</strong> A mode that runs in real-time, more closely mimicking real-world deployment 
+                        scenarios where actions must be computed within strict time constraints.</li>
                 </ul>
-                <div class="code-block">
-                    <div class="code-header">
-                        <span>Example: Real-Time RL Agent</span>
-                    </div>
-                    <pre><code>class RealTimeRLAgent:
-    def __init__(self, model_path, max_latency_ms=100):
-        self.model = load_model(model_path)
-        self.max_latency = max_latency_ms
-    
-    def predict(self, observation):
-        start_time = time.time()
-        action = self.model.predict(observation)
-        latency = (time.time() - start_time) * 1000
-        
-        if latency > self.max_latency:
-            logger.warning(f"Latency exceeded: {latency}ms")
-        
-        return action</code></pre>
+                <p>
+                    For our experiments, we primarily use gym mode, which allows us to systematically control and vary the delay 
+                    between state observation and action execution. This enables us to study the impact of different delay magnitudes 
+                    on agent performance.
+                </p>
+
+                <h3>Simulating Action Computation Delay</h3>
+                <p>
+                    In our experiments, we simulate the delay introduced by neural network forward passes (such as those in SAC's policy 
+                    network) by fixing specific time delays in Duckietown's gym mode. When an agent requests an action, we introduce 
+                    a controlled delay before the action is applied to the environment. During this delay, the environment continues 
+                    to evolve, simulating the real-world scenario where computation time allows the state to advance.
+                </p>
+                <p>
+                    This approach allows us to:
+                </p>
+                <ul class="feature-list">
+                    <li>Systematically study the impact of different delay magnitudes</li>
+                    <li>Compare classical RL (without action conditioning) against Real-Time RL (with action conditioning)</li>
+                    <li>Test both fixed and variable delay scenarios</li>
+                </ul>
+
+                <h3>Hyperparameter Tuning</h3>
+                <p>
+                    Before conducting our main experiments, we perform comprehensive hyperparameter tuning to ensure fair comparisons 
+                    between different approaches. The following table outlines the key hyperparameters we tune:
+                </p>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hyperparameter</th>
+                                <th>Search Range</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Learning Rate (α)</td>
+                                <td>[1e-5, 1e-3]</td>
+                                <td>Policy and Q-function learning rate</td>
+                            </tr>
+                            <tr>
+                                <td>Temperature (τ)</td>
+                                <td>[0.01, 0.3]</td>
+                                <td>SAC entropy regularization coefficient</td>
+                            </tr>
+                            <tr>
+                                <td>Replay Buffer Size</td>
+                                <td>[1e5, 1e6]</td>
+                                <td>Size of experience replay buffer</td>
+                            </tr>
+                            <tr>
+                                <td>Batch Size</td>
+                                <td>[64, 512]</td>
+                                <td>Training batch size</td>
+                            </tr>
+                            <tr>
+                                <td>Network Architecture</td>
+                                <td>[256, 512]</td>
+                                <td>Hidden layer dimensions</td>
+                            </tr>
+                            <tr>
+                                <td>Update Frequency</td>
+                                <td>[1, 4]</td>
+                                <td>Policy/Q-function update frequency</td>
+                            </tr>
+                            <tr>
+                                <td>Target Update Rate</td>
+                                <td>[0.001, 0.01]</td>
+                                <td>Soft target network update coefficient</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
-            <!-- Key Findings -->
-            <section id="results" class="content-section">
-                <h2>Key Findings</h2>
-                <h3 class="highlight">Experiment 1</h3>
-                <h3 class="highlight">Experiment 2</h3>
-                <h3 class="highlight">Experiment 3</h3>
+            <!-- Experiments -->
+            <section id="experiments" class="content-section">
+                <h2>Experimental Setup</h2>
                 <p>
-                    Our experiments revealed several important insights about real-time RL performance in Duckiematrix:
+                    We conduct three main experiments to systematically evaluate the impact of computation delays and the effectiveness 
+                    of Real-Time RL approaches:
                 </p>
-                <div class="findings-grid">
-                    <div class="finding-card">
-                        <div class="finding-icon">⚡</div>
-                        <h3>Latency Optimization</h3>
-                        <p>We achieved sub-100ms inference times while maintaining competitive performance through model quantization and efficient architectures.</p>
+
+                <h3>Experiment 1: Classical RL Baseline (No Action Conditioning)</h3>
+                <p>
+                    In our first experiment, we test classical RL methods without action conditioning in a real-world-like setting 
+                    with simulated delays. This serves as our baseline, demonstrating how traditional RL algorithms (which assume 
+                    instantaneous action computation) perform when deployed in scenarios with non-negligible computation delays.
+                </p>
+                <p>
+                    We use standard Soft Actor-Critic (SAC) with the policy conditioned only on the current state: 
+                    <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>. The environment is run with fixed delays to simulate the time required 
+                    for neural network forward passes.
+                </p>
+                <div class="plot-placeholder">
+                    <div class="plot-content">
+                        <p class="plot-label">Figure 1: Performance of Classical RL (SAC) with Fixed Delays</p>
+                        <div class="plot-image">
+                            <p>[Placeholder for learning curves showing reward vs. training steps for different delay values]</p>
+                        </div>
+                        <p class="plot-caption">
+                            Comparison of cumulative reward over training for classical SAC with various fixed delays (0ms, 50ms, 100ms, 200ms). 
+                            This baseline demonstrates the degradation in performance as delay increases.
+                        </p>
                     </div>
-                    <div class="finding-card">
-                        <div class="finding-icon">🎯</div>
-                        <h3>Accuracy Trade-offs</h3>
-                        <p>Careful balance between model complexity and inference speed is crucial for real-time applications.</p>
+                </div>
+
+                <h3>Experiment 2: Real-Time RL with Fixed Delay (Action Conditioning)</h3>
+                <p>
+                    Our second experiment implements Real-Time RL by conditioning the policy on both the previous state and previous 
+                    action: <em>π(a<sub>t</sub> | s<sub>t</sub>, a<sub>t-1</sub>)</em>. This allows the policy to learn to predict 
+                    state evolution and compensate for the delay.
+                </p>
+                <p>
+                    We test this approach with fixed delays to directly compare against the classical RL baseline and evaluate whether 
+                    action conditioning improves performance under delay constraints.
+                </p>
+                <div class="plot-placeholder">
+                    <div class="plot-content">
+                        <p class="plot-label">Figure 2: Real-Time RL (RTAC) vs. Classical RL with Fixed Delays</p>
+                        <div class="plot-image">
+                            <p>[Placeholder for comparison plot showing RTAC vs. SAC performance across different delay values]</p>
+                        </div>
+                        <p class="plot-caption">
+                            Performance comparison between Real-Time RL (with action conditioning) and classical RL across different 
+                            fixed delay values. The plot shows final performance metrics and learning efficiency.
+                        </p>
                     </div>
-                    <div class="finding-card">
-                        <div class="finding-icon">🔄</div>
-                        <h3>Sim-to-Real Transfer</h3>
-                        <p>Duckiematrix provides a robust foundation for sim-to-real transfer with proper domain adaptation techniques.</p>
+                </div>
+                <div class="plot-placeholder">
+                    <div class="plot-content">
+                        <p class="plot-label">Figure 3: Learning Curves - Real-Time RL with Action Conditioning</p>
+                        <div class="plot-image">
+                            <p>[Placeholder for learning curves showing training progress for Real-Time RL with different delay values]</p>
+                        </div>
+                        <p class="plot-caption">
+                            Training curves demonstrating how Real-Time RL learns to adapt to fixed delays through action conditioning.
+                        </p>
                     </div>
+                </div>
+
+                <h3>Experiment 3: Real-Time RL with Variable Time Delay</h3>
+                <p>
+                    In our third experiment, we extend the Real-Time RL approach to handle variable time delays. This scenario is 
+                    more realistic, as computation time can vary depending on system load, network latency, or other factors. The 
+                    policy must learn to be robust to this variability.
+                </p>
+                <p>
+                    We test the Real-Time RL agent with delays sampled from different distributions (e.g., uniform, normal) to 
+                    evaluate robustness to delay variability.
+                </p>
+                <div class="plot-placeholder">
+                    <div class="plot-content">
+                        <p class="plot-label">Figure 4: Real-Time RL Performance with Variable Delays</p>
+                        <div class="plot-image">
+                            <p>[Placeholder for plot showing performance under variable delay distributions]</p>
+                        </div>
+                        <p class="plot-caption">
+                            Evaluation of Real-Time RL robustness when delays vary according to different distributions. 
+                            Compares performance across uniform, normal, and exponential delay distributions.
+                        </p>
+                    </div>
+                </div>
+                <div class="plot-placeholder">
+                    <div class="plot-content">
+                        <p class="plot-label">Figure 5: Delay Distribution Impact Analysis</p>
+                        <div class="plot-image">
+                            <p>[Placeholder for analysis plot showing how different delay distributions affect agent performance]</p>
+                        </div>
+                        <p class="plot-caption">
+                            Detailed analysis of how the variance and distribution shape of delays impact Real-Time RL performance.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results -->
+            <section id="results" class="content-section">
+                <h2>Results and Analysis</h2>
+                <p>
+                    The results from our experiments will be presented here, including quantitative comparisons and qualitative 
+                    analysis of agent behavior. Key metrics include:
+                </p>
+                <ul class="feature-list">
+                    <li>Cumulative reward and task completion rates</li>
+                    <li>Learning efficiency and sample complexity</li>
+                    <li>Robustness to delay variations</li>
+                    <li>Comparison between classical and Real-Time RL approaches</li>
+                </ul>
+
+                <div class="plot-placeholder">
+                    <div class="plot-content">
+                        <p class="plot-label">Figure 6: Comprehensive Performance Comparison</p>
+                        <div class="plot-image">
+                            <p>[Placeholder for comprehensive comparison table/plot showing all experimental results]</p>
+                        </div>
+                        <p class="plot-caption">
+                            Summary comparison of all experimental conditions, showing the relative performance of classical RL 
+                            vs. Real-Time RL across different delay scenarios.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Delay Type</th>
+                                <th>Mean Reward</th>
+                                <th>Success Rate</th>
+                                <th>Sample Efficiency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Classical SAC</td>
+                                <td>Fixed (0ms)</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                            </tr>
+                            <tr>
+                                <td>Classical SAC</td>
+                                <td>Fixed (100ms)</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                            </tr>
+                            <tr>
+                                <td>Real-Time RL</td>
+                                <td>Fixed (100ms)</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                            </tr>
+                            <tr>
+                                <td>Real-Time RL</td>
+                                <td>Variable (μ=100ms)</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                                <td>[TBD]</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -159,23 +422,34 @@
             <section id="conclusion" class="content-section">
                 <h2>Conclusion</h2>
                 <p>
-                    Real-Time Reinforcement Learning in Duckiematrix opens up exciting possibilities for deploying intelligent 
-                    autonomous systems. Our research demonstrates that with careful optimization and design choices, RL agents 
-                    can operate effectively under real-time constraints while maintaining high performance.
+                    Through our systematic investigation of Real-Time Reinforcement Learning in Duckietown, we aim to demonstrate 
+                    the importance of accounting for computation delays in RL systems. Our experiments compare classical RL approaches 
+                    (which assume instantaneous action computation) against Real-Time RL methods that condition on previous actions 
+                    to learn state evolution predictions.
                 </p>
                 <p>
-                    Future work will focus on further reducing latency, improving robustness, and exploring more complex 
-                    multi-agent scenarios in the Duckiematrix environment.
+                    The results will provide insights into:
+                </p>
+                <ul class="feature-list">
+                    <li>The extent to which computation delays degrade classical RL performance</li>
+                    <li>The effectiveness of action conditioning in compensating for delays</li>
+                    <li>The robustness of Real-Time RL to variable delay scenarios</li>
+                </ul>
+                <p>
+                    These findings have important implications for deploying RL systems in real-world, safety-critical applications 
+                    where computation time cannot be ignored. Future work will explore more sophisticated delay compensation techniques 
+                    and extend the approach to multi-agent scenarios in the Duckietown environment.
                 </p>
             </section>
 
-            <!-- References/Resources -->
+            <!-- References -->
             <section class="content-section">
-                <h2>Resources</h2>
+                <h2>References</h2>
                 <ul class="resource-list">
+                    <li>Ramstedt, S., & Pal, C. (2019). Real-Time Reinforcement Learning. <em>Advances in Neural Information Processing Systems</em>.</li>
+                    <li>Haarnoja, T., et al. (2018). Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor.</li>
                     <li><a href="https://www.duckietown.org/" target="_blank">Duckietown Project</a></li>
                     <li><a href="https://github.com/duckietown" target="_blank">Duckietown GitHub</a></li>
-                    <li><a href="#" target="_blank">Project Repository</a></li>
                 </ul>
             </section>
         </article>
@@ -191,4 +465,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
