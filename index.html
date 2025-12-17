@@ -84,7 +84,7 @@
                 <p>
                     Markov Decision Processes (MDPs), the mathematical framework underlying most algorithms in Reinforcement Learning, 
                     are often used in a way that wrongfully assumes that the state of an agent's environment does not change during 
-                    action selection. As noted by Ramstedt and Pal in their seminal work on Real-Time RL, this assumption breaks down 
+                    action selection. As noted by Ramstedt and Pal in their work on Real-Time RL <a href="https://arxiv.org/abs/1911.04448" target="_blank" class="citation">[1]</a>, this assumption breaks down 
                     in real-world scenarios where computation time is non-negligible.
                 </p>
                 <p>
@@ -97,9 +97,10 @@
                 </ol>
                 <p>
                     However, in real-time scenarios, there is a delay <em>δ</em> between observing the state and executing the action. 
-                    During this delay, the environment continues to evolve, meaning the action computed for state <em>s<sub>t</sub></em> 
-                    is actually applied to a different state <em>s<sub>t+δ</sub></em>. This mismatch can lead to suboptimal or even 
-                    dangerous behavior, especially in safety-critical applications.
+                    During this delay, the environment continues to evolve. For example, when the agent observes state <em>s<sub>t-1</sub></em> 
+                    and computes action <em>a<sub>t-1</sub></em>, by the time this action is actually applied, the environment has advanced 
+                    to state <em>s<sub>t</sub></em>. This mismatch can lead to suboptimal or even dangerous behavior, especially in 
+                    safety-critical applications.
                 </p>
 
                 <h3>The Real-Time MDP Formulation</h3>
@@ -113,16 +114,18 @@
                     within the model, effectively compensating for the advancing of the state during action computation time.
                 </p>
                 <p>
-                    Formally, instead of the classical policy <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>, we use:
+                    Formally, instead of the classical policy <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>, we condition the policy on the 
+                    previous state and previous action to predict the current action:
                 </p>
                 <div class="math-formula">
-                    <p><em>π(a<sub>t</sub> | s<sub>t</sub>, a<sub>t-1</sub>)</em></p>
+                    <p><em>π(a<sub>t</sub> | s<sub>t-1</sub>, a<sub>t-1</sub>)</em></p>
                 </div>
                 <p>
-                    By conditioning on the previous action <em>a<sub>t-1</sub></em>, the policy can learn to anticipate how the state 
-                    will evolve during the computation delay, effectively learning an internal model of the environment dynamics. This 
-                    enables the agent to select actions that will be appropriate for the state that exists when the action is actually 
-                    executed, rather than the state that existed when the action computation began.
+                    By conditioning on both <em>s<sub>t-1</sub></em> and <em>a<sub>t-1</sub></em>, the policy can learn to anticipate how 
+                    the state will evolve during the computation delay, effectively learning an internal model of the environment dynamics. 
+                    This enables the agent to select actions that will be appropriate for the advanced state <em>s<sub>t</sub></em> that exists 
+                    when the action is actually executed, rather than the state <em>s<sub>t-1</sub></em> that existed when the action 
+                    computation began.
                 </p>
                 <p>
                     This approach is particularly relevant for neural network policies (such as those used in Soft Actor-Critic (SAC)), 
@@ -265,7 +268,7 @@
                 <h3>Experiment 2: Real-Time RL with Fixed Delay (Action Conditioning)</h3>
                 <p>
                     Our second experiment implements Real-Time RL by conditioning the policy on both the previous state and previous 
-                    action: <em>π(a<sub>t</sub> | s<sub>t</sub>, a<sub>t-1</sub>)</em>. This allows the policy to learn to predict 
+                    action: <em>π(a<sub>t</sub> | s<sub>t-1</sub>, a<sub>t-1</sub>)</em>. This allows the policy to learn to predict 
                     state evolution and compensate for the delay.
                 </p>
                 <p>
@@ -446,7 +449,7 @@
             <section class="content-section">
                 <h2>References</h2>
                 <ul class="resource-list">
-                    <li>Ramstedt, S., & Pal, C. (2019). Real-Time Reinforcement Learning. <em>Advances in Neural Information Processing Systems</em>.</li>
+                    <li>[1] Ramstedt, S., & Pal, C. (2019). Real-Time Reinforcement Learning. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/1911.04448" target="_blank">arXiv:1911.04448</a></li>
                     <li>Haarnoja, T., et al. (2018). Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor.</li>
                     <li><a href="https://www.duckietown.org/" target="_blank">Duckietown Project</a></li>
                     <li><a href="https://github.com/duckietown" target="_blank">Duckietown GitHub</a></li>
