@@ -1,0 +1,14 @@
+# LIST YOUR APT PACKAGES HERE
+
+# context management
+zip
+unzip
+
+# these are requirements for the package `lens_distortion_test`
+python3-tk
+
+# these are needed to build rotorpy from source
+libsuitesparse-dev
+
+ffmpeg
+gstreamer1.0-plugins-base

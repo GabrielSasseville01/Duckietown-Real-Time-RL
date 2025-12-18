@@ -1,0 +1,31 @@
+version: 1.0
+time_of_flights: 
+  map_0/vehicle_1/tof_bottom:
+    name: bottom
+    angle: 0.4363
+    maximum_distance: 2.0
+    frequency: 30
+
+  map_0/vehicle_1/tof_top:
+    name: top
+    angle: 0.4363
+    maximum_distance: 2.0
+    frequency: 30
+
+  map_0/vehicle_1/tof_front:
+    name: front
+    angle: 0.4363
+    maximum_distance: 2.0
+    frequency: 30
+
+  map_0/vehicle_1/tof_left:
+    name: left
+    angle: 0.4363
+    maximum_distance: 2.0
+    frequency: 30
+
+  map_0/vehicle_1/tof_right:
+    name: right
+    angle: 0.4363
+    maximum_distance: 2.0
+    frequency: 30

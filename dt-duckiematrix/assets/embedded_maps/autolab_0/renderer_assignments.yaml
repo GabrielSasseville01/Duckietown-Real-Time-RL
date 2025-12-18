@@ -1,0 +1,9 @@
+version: 1.0
+renderer_assignments:
+    renderer_0:
+        entities:
+            - map_0/vehicle_0
+            - map_0/watchtower_0
+            - map_0/watchtower_1
+            - map_0/watchtower_2
+            - map_0/watchtower_3

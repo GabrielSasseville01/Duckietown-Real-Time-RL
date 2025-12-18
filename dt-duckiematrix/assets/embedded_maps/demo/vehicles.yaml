@@ -1,0 +1,39 @@
+version: 1.0
+vehicles:
+    map_0/vehicle_0:
+        configuration: DB21M
+        id: ''
+        color: ~
+    map_0/vehicle_1:
+        configuration: DB21M
+        id: ''
+        color: "#db12c7"
+    map_0/vehicle_2:
+        configuration: DB21M
+        id: ''
+        color: "#d7e60e"
+    map_0/vehicle_3:
+        configuration: DB21M
+        id: ''
+        color: "#000"
+    map_0/vehicle_4:
+        configuration: DB21M
+        id: ''
+        color: "#0ee627"
+    map_0/vehicle_5:
+        configuration: DB21M
+        id: ''
+        color: "#ed6a0c"
+    map_0/vehicle_6:
+        configuration: DB21M
+        id: ''
+        color: "#ff0000"
+    # parked vehicles
+    map_0/parking_lot_0/vehicle_0:
+        configuration: DB18
+        id: ''
+        color: ~
+    map_0/parking_lot_0/vehicle_1:
+        configuration: DB19
+        id: ''
+        color: ~

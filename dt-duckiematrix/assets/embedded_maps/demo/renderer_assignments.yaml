@@ -1,0 +1,23 @@
+version: 1.0
+renderer_assignments:
+  renderer_0:
+    entities:
+      - map_0/vehicle_0
+  renderer_1:
+    entities:
+      - map_0/vehicle_1
+  renderer_2:
+    entities:
+      - map_0/vehicle_2
+  renderer_3:
+    entities:
+      - map_0/vehicle_3
+  renderer_4:
+    entities:
+      - map_0/vehicle_4
+  renderer_5:
+    entities:
+      - map_0/vehicle_5
+  renderer_6:
+    entities:
+      - map_0/vehicle_6

@@ -1,0 +1,4 @@
+"""Constants."""
+
+INF = 9999
+INTERPOLATION_MASK_SIZE = 5

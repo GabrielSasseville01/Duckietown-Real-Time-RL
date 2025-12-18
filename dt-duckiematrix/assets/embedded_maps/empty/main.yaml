@@ -1,0 +1,5 @@
+version: 1.0
+main:
+  frames: !include 'frames.yaml'
+  tiles: !include 'tiles.yaml'
+  tile_maps: !include 'tile_maps.yaml'

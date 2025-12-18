@@ -1,0 +1,20 @@
+version: 1.0
+frames:
+  map_0:
+    relative_to: ~
+    pose:
+      x: 0.0
+      y: 0.0
+      z: 0
+      roll: 0
+      pitch: 0
+      yaw: 0
+  map_0/vehicle_1:
+    relative_to: ~
+    pose:
+      x: 0
+      y: 0
+      z: 0
+      roll: 0
+      pitch: 0
+      yaw: 0.0

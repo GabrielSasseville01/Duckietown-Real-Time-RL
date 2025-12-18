@@ -1,0 +1,14 @@
+version: 1.0
+scripts:
+    map_0/duckie_0:
+        scripts:
+            - run_in_circle_script
+    map_0/duckie_1:
+        scripts:
+            - run_in_circle_script
+    map_0/duckie_2:
+        scripts:
+            - run_in_circle_script
+    sun:
+        scripts:
+            - sun

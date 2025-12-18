@@ -1,0 +1,8 @@
+version: 1.0
+vehicles:
+
+  map_0/vehicle_1:
+    configuration: DD24
+    id: ''
+    color: ~
+

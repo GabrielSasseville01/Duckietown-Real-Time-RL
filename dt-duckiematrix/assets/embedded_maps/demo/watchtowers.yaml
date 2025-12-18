@@ -1,0 +1,8 @@
+version: 1.0
+watchtowers:
+    map_0/watchtower_0:
+        configuration: WT21A
+        id: ~
+    map_0/watchtower_1:
+        configuration: WT21A
+        id: ~

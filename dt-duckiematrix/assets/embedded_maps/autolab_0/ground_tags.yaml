@@ -1,0 +1,21 @@
+version: 1.0
+ground_tags:
+    map_0/groundtag_300:
+        size: 0.08
+        id: 300
+        family: 36h11
+
+    map_0/groundtag_301:
+        size: 0.08
+        id: 301
+        family: 36h11
+
+    map_0/groundtag_302:
+        size: 0.08
+        id: 302
+        family: 36h11
+
+    map_0/groundtag_303:
+        size: 0.08
+        id: 303
+        family: 36h11

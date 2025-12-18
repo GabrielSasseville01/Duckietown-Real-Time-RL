@@ -1,0 +1,32 @@
+version: 1.0
+renderer_authentication:
+  # Andrea D.
+  renderer_0:
+    key: 843feafb-d650-4d47-8729-e16bee42ed8c
+  # Andrea C.
+  renderer_1:
+    key: 3bc87259-9ab2-41c9-aca9-1bc303ee38c4
+  # Jacopo
+  renderer_2:
+    key: ab5e71c7-a173-44b9-90e9-fc3335e6b907
+  # Liam P.
+  renderer_3:
+    key: bdb8cbd5-6c08-4911-8921-4628cb78fa38
+  # Jason H.
+  renderer_4:
+    key: 8dab8cf3-630c-4709-ac9f-ef4e6f873317
+  # Kathryn H.
+  renderer_5:
+    key: cf0ccd09-ffa4-4974-9bcc-e15d1b3024b8
+  # Davide I.
+  renderer_6:
+    key: 84bbb043-9353-4e70-8fcc-236c623ffdbc
+  # Guest 2
+  renderer_7:
+    key: 788bc1af-389c-452f-abf7-03a3e4ded6e7
+  # Guest 3
+  renderer_8:
+    key: a8d57f31-5d16-4d71-83d4-286e1a51aa6e
+  # Guest 4
+  renderer_9:
+    key: a8d57f31-5d16-4d71-83d4-286e1a51aa6e

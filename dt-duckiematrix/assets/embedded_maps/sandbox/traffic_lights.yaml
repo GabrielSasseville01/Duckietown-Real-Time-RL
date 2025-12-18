@@ -1,0 +1,14 @@
+version: 1.0
+traffic_lights:
+  map_0/traffic_light_0:
+    configuration: TL21
+    id: ~
+  map_0/traffic_light_1:
+    configuration: TL21
+    id: ~
+  map_0/traffic_light_2:
+    configuration: TL21
+    id: ~
+  map_0/traffic_light_3:
+    configuration: TL21
+    id: ~

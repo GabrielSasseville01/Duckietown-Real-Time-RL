@@ -1,0 +1,7 @@
+version: 1.0
+physical_robots:
+    map_0/vehicle_0: vautobot00
+    map_0/watchtower_0: vwatchtower00
+    map_0/watchtower_1: vwatchtower01
+    map_0/watchtower_2: vwatchtower02
+    map_0/watchtower_3: vwatchtower03

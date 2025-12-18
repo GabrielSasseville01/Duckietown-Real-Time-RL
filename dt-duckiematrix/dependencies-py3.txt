@@ -1,0 +1,32 @@
+# LIST YOUR PYTHON3 PACKAGES HERE
+
+# this is used to get list of netifaces and IP addresses
+netifaces==0.11.0
+
+# force pyyaml away from specific versions: https://github.com/yaml/pyyaml/issues/724
+PyYAML==5.3
+
+# ZMQ/CBOR communication
+cbor2==5.5.1
+pyzmq==25.1.1
+
+# Used to handle rotations
+scipy==1.15.*
+
+# Quadcopter dynamics
+git+https://github.com/duckietown/rotorpy.git@feature-ardupilot-interface
+
+# -- Duckietown
+
+# this is the duckietown dynamics package
+lib-dt-modeling==0.0.11
+
+# these are the public protocols
+# TODO: this should be removed once the renderers are moved to use DTPS and the new messages in 'duckietown-messages'
+dt-duckiematrix-protocols-ente==0.1.8
+
+# this is the duckietown messages package
+git+https://github.com/duckietown/duckietown-messages@main
+
+# openCV
+opencv-python-headless<=4.9.0.80

@@ -1,0 +1,277 @@
+version: 1.0
+frames:
+    map_0:
+        relative_to: ~
+        pose:
+            x: 0.0
+            y: 0.0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0
+
+    map_0/tile_0_0:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 0
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 4.71238898038469
+    map_0/tile_0_1:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 0
+            y: 1
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/tile_0_2:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 0
+            y: 2
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 3.14159265359
+    map_0/tile_1_0:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 1
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 4.71238898038469
+    map_0/tile_1_1:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 1
+            y: 1
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/tile_1_2:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 1
+            y: 2
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 4.71238898038469
+    map_0/tile_2_0:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 2
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 4.71238898038469
+    map_0/tile_2_1:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 2
+            y: 1
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/tile_2_2:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 2
+            y: 2
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 1.5707963267948966
+    map_0/tile_3_0:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 3
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/tile_3_1:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 3
+            y: 1
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/tile_3_2:
+        relative_to: ~
+        unit: tiles
+        pose:
+            x: 3
+            y: 2
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 1.5707963267948966
+
+    map_0/vehicle_0:
+        relative_to: map_0
+        pose:
+            x: 0.8799999999999999
+            y: 0.18499999999999986
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/vehicle_0/camera_0:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0
+
+    map_0/watchtower_0:
+        relative_to: map_0
+        pose:
+            x: 0.625
+            y: 0.665
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 3.14
+    map_0/watchtower_0/camera_0:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 3.14
+
+    map_0/watchtower_1:
+        relative_to: map_0
+        pose:
+            x: 1.72
+            y: 0.62
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/watchtower_1/camera_0:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+
+    map_0/watchtower_2:
+        relative_to: map_0
+        pose:
+            x: 1.72
+            y: 1.09
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+    map_0/watchtower_2/camera_0:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 3.14
+
+    map_0/watchtower_3:
+        relative_to: map_0
+        pose:
+            x: 0.625
+            y: 1.13
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 3.14
+    map_0/watchtower_3/camera_0:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0
+
+    map_0/duckie_0:
+        relative_to: map_0
+        pose:
+            x: 1.25
+            y: 0.85
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+
+    map_0/groundtag_300:
+        relative_to: map_0
+        pose:
+            x: 1.0
+            y: 0.665
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+
+    map_0/groundtag_301:
+        relative_to: map_0
+        pose:
+            x: 1.45
+            y: 0.665
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+
+    map_0/groundtag_302:
+        relative_to: map_0
+        pose:
+            x: 1.45
+            y: 1.09
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0
+
+    map_0/groundtag_303:
+        relative_to: map_0
+        pose:
+            x: 1.0
+            y: 1.09
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 0.0

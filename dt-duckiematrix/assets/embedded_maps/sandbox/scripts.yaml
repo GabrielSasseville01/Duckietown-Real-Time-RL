@@ -1,0 +1,14 @@
+version: 1.0
+scripts:
+  map_0/traffic_light_0:
+    scripts:
+      - traffic_light_script
+  map_0/traffic_light_1:
+    scripts:
+      - traffic_light_script
+  map_0/traffic_light_2:
+    scripts:
+      - traffic_light_script
+  map_0/traffic_light_3:
+    scripts:
+      - traffic_light_script

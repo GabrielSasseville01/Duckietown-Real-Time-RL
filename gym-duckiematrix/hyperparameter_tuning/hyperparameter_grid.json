@@ -1,0 +1,137 @@
+{
+  "configs": [
+    {
+      "lr": 0.0001,
+      "hidden_dim": 128,
+      "tau": 0.005,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 128,
+      "tau": 0.005,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 128,
+      "tau": 0.01,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 128,
+      "tau": 0.01,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 256,
+      "tau": 0.005,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 256,
+      "tau": 0.005,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 256,
+      "tau": 0.01,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0001,
+      "hidden_dim": 256,
+      "tau": 0.01,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 128,
+      "tau": 0.005,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 128,
+      "tau": 0.005,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 128,
+      "tau": 0.01,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 128,
+      "tau": 0.01,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 256,
+      "tau": 0.005,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 256,
+      "tau": 0.005,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 256,
+      "tau": 0.01,
+      "alpha": 0.1,
+      "batch_size": 256,
+      "update_freq": 1
+    },
+    {
+      "lr": 0.0003,
+      "hidden_dim": 256,
+      "tau": 0.01,
+      "alpha": 0.2,
+      "batch_size": 256,
+      "update_freq": 1
+    }
+  ],
+  "num_episodes": 400,
+  "max_steps_per_episode": 2000,
+  "save_freq": 100,
+  "use_gym_mode": false,
+  "step_duration": 0.1
+}

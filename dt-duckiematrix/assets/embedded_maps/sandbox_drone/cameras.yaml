@@ -1,0 +1,45 @@
+version: 1.0
+cameras:
+  map_0/vehicle_1/camera_0:
+    name: front_center
+    camera_matrix:
+      - - 309.1791995555939
+        - 0.0
+        - 220.67496030014146
+      - - 0.0
+        - 309.8923403865892
+        - 322.2815791925517
+      - - 0.0
+        - 0.0
+        - 1.0
+    distortion_parameters:
+      - -0.3543517592168695
+      - 0.16442205538110652
+      - 0.0019406748564795508
+      - -0.0028917796204922853
+      - -0.04067351040366832
+    width: 480
+    height: 640
+    frame_rate: 30
+
+  map_0/vehicle_1/cameraman_0/camera_0:
+    name: camera_0
+    camera_matrix:
+    - - 200
+      - 0.0
+      - 960
+    - - 0.0
+      - 200
+      - 540
+    - - 0.0
+      - 0.0
+      - 1.0
+    distortion_parameters:
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    width: 1920
+    height: 1080
+    frame_rate: 30

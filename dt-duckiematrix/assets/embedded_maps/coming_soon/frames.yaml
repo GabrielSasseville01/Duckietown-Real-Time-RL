@@ -1,0 +1,20 @@
+version: 1.0
+frames:
+    sun:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 0
+            z: 10.0
+            roll: -1.5708
+            pitch: 0
+            yaw: 0
+    billboard_1:
+        relative_to: ~
+        pose:
+            x: 0
+            y: 1.0
+            z: 0
+            roll: 0
+            pitch: 0
+            yaw: 1.5708

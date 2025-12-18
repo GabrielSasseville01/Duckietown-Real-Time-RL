@@ -1,0 +1,8 @@
+default:
+  restart: unless-stopped
+  network_mode: host
+  environment:
+    DT_SUPERUSER: 1
+    DT_LAUNCHER: sandbox-realtime
+  volumes:
+    - ./assets/embedded_maps:/embedded_maps

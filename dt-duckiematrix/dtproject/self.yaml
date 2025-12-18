@@ -1,0 +1,8 @@
+name: "dt-duckiematrix"
+maintainer:
+    name: "Andrea F. Daniele"
+    email: "afdaniele@duckietown.com"
+description: "The Duckiematrix Engine"
+version: 0.0.0
+# pick an icon from: https://fontawesome.com/v4.7.0/icons/
+icon: square

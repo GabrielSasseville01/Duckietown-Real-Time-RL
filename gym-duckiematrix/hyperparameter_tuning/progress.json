@@ -1,0 +1,19 @@
+{
+  "completed": [
+    "config_0_alpha_0p1_batch_size_256_hidden_dim_128_lr_1em4_tau_0em2_update_freq_1",
+    "config_1_alpha_0p2_batch_size_256_hidden_dim_128_lr_1em4_tau_0em2_update_freq_1",
+    "config_2_alpha_0p1_batch_size_256_hidden_dim_128_lr_1em4_tau_1em2_update_freq_1",
+    "config_3_alpha_0p2_batch_size_256_hidden_dim_128_lr_1em4_tau_1em2_update_freq_1",
+    "config_4_alpha_0p1_batch_size_256_hidden_dim_256_lr_1em4_tau_0em2_update_freq_1",
+    "config_5_alpha_0p2_batch_size_256_hidden_dim_256_lr_1em4_tau_0em2_update_freq_1",
+    "config_6_alpha_0p1_batch_size_256_hidden_dim_256_lr_1em4_tau_1em2_update_freq_1",
+    "config_7_alpha_0p2_batch_size_256_hidden_dim_256_lr_1em4_tau_1em2_update_freq_1",
+    "config_8_alpha_0p1_batch_size_256_hidden_dim_128_lr_0em3_tau_0em2_update_freq_1",
+    "config_9_alpha_0p2_batch_size_256_hidden_dim_128_lr_0em3_tau_0em2_update_freq_1",
+    "config_10_alpha_0p1_batch_size_256_hidden_dim_128_lr_0em3_tau_1em2_update_freq_1",
+    "config_11_alpha_0p2_batch_size_256_hidden_dim_128_lr_0em3_tau_1em2_update_freq_1",
+    "config_12_alpha_0p1_batch_size_256_hidden_dim_256_lr_0em3_tau_0em2_update_freq_1"
+  ],
+  "in_progress": [],
+  "failed": []
+}

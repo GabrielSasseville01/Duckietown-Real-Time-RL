@@ -1,0 +1,451 @@
+version: 1.0
+lights:
+    map_0/vehicle_0/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_0/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_0/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_0/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/vehicle_1/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_1/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_1/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_1/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/vehicle_2/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_2/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_2/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_2/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/vehicle_3/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_3/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_3/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_3/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/vehicle_4/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_4/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_4/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_4/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/vehicle_5/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_5/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_5/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_5/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/vehicle_6/light_0:
+        name: front_left
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/vehicle_6/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_6/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.2
+        range: 3.0
+        angle: 0.0
+        color: '#f00'
+    map_0/vehicle_6/light_4:
+        name: back_right
+        type: spot
+        intensity: 1.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+
+    map_0/billboard_1/light_0:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+    map_0/billboard_1/light_1:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+    map_0/billboard_1/light_2:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+    map_0/billboard_1/light_3:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+
+    map_0/billboard_2/light_0:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+    map_0/billboard_2/light_1:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+    map_0/billboard_2/light_2:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+    map_0/billboard_2/light_3:
+        type: spot
+        intensity: 0.2
+        range: 0.4
+        angle: 0.0
+        color: '#fff'
+
+    # street lights
+    map_0/street_light_0/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_1/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_2/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_3/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_4/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_5/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_6/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/street_light_7/light_0:
+        type: spot
+        intensity: 2.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+
+    # parked vehicles
+    map_0/parking_lot_0/vehicle_0/light_0:
+        name: front_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_0/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_0/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_0/light_4:
+        name: back_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_0/light_5:
+        name: front_center
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/parking_lot_0/vehicle_1/light_0:
+        name: front_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_1/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_1/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_1/light_4:
+        name: back_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_1/light_5:
+        name: front_center
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/parking_lot_0/vehicle_2/light_0:
+        name: front_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_2/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_2/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_2/light_4:
+        name: back_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_2/light_5:
+        name: front_center
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+
+    map_0/parking_lot_0/vehicle_4/light_0:
+        name: front_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_4/light_1:
+        name: front_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_4/light_3:
+        name: back_left
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_4/light_4:
+        name: back_right
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'
+    map_0/parking_lot_0/vehicle_4/light_5:
+        name: front_center
+        type: spot
+        intensity: 0.0
+        range: 2.0
+        angle: 0.0
+        color: '#fff'

@@ -1,0 +1,5 @@
+version: 1.0
+imus:
+  map_0/vehicle_0/imu_base:
+    name: base
+    frequency: 30

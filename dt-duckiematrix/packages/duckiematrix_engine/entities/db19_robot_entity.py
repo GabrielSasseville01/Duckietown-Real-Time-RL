@@ -1,0 +1,32 @@
+"""DB19 robot entity."""
+
+from datetime import UTC, datetime
+
+from packages.duckiematrix_engine.entities.differential_drive_entity_abs import (
+    DifferentialDriveEntityAbs,
+)
+
+
+class DB19RobotEntity(DifferentialDriveEntityAbs):
+    """DB19 robot entity."""
+
+    BASELINE = 0.10
+
+    def __init__(self, matrix_key: str, world_key: str | None = None) -> None:
+        """Initialize DB19 robot entity."""
+        super().__init__(matrix_key, self.BASELINE, world_key)
+
+    def update(self, delta_time: float) -> None:
+        """Update."""
+        super().update(delta_time)
+        collision, timestamp = self.matrix.collision()
+        # TODO: do something here
+        if collision is not None:
+            date_time = datetime.fromtimestamp(timestamp, UTC)
+            self._logger.warning(
+                "%s collided with %s at %s on %s.",
+                self.world_key,
+                collision,
+                date_time.time(),
+                date_time.date(),
+            )
