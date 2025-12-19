@@ -440,7 +440,17 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
     
     # Create checkpoint directory if it doesn't exist
     os.makedirs(checkpoint_dir, exist_ok=True)
-    print(f"Checkpoints will be saved to: {checkpoint_dir}/")
+    abs_checkpoint_dir = os.path.abspath(checkpoint_dir)
+    print(f"Checkpoints will be saved to: {abs_checkpoint_dir}/")
+    # Verify directory is writable
+    test_file = os.path.join(checkpoint_dir, ".write_test")
+    try:
+        with open(test_file, 'w') as f:
+            f.write("test")
+        os.remove(test_file)
+    except Exception as e:
+        print(f"WARNING: Checkpoint directory may not be writable: {e}")
+        raise RuntimeError(f"Cannot write to checkpoint directory: {checkpoint_dir}")
     
     # Initialize metrics tracker
     metrics = None
@@ -522,6 +532,23 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
     print(f"Action space: {env.action_space}")
     print(f"Batch size: {batch_size}, Update frequency: {update_freq}")
     print(f"Auto-tuning alpha: {agent.auto_alpha}")
+    if start_episode > 0:
+        print(f"Resuming from episode {start_episode}")
+    
+    # Save initial checkpoint if resuming (ensures we have a checkpoint even if training fails early)
+    if start_episode > 0:
+        initial_policy_path = os.path.join(checkpoint_dir, f"sac_policy_ep{start_episode}.pth")
+        initial_q1_path = os.path.join(checkpoint_dir, f"sac_q1_ep{start_episode}.pth")
+        initial_q2_path = os.path.join(checkpoint_dir, f"sac_q2_ep{start_episode}.pth")
+        # Only save if they don't already exist (to avoid overwriting the checkpoint we just loaded from)
+        if not os.path.exists(initial_policy_path):
+            try:
+                torch.save(agent.policy.state_dict(), initial_policy_path)
+                torch.save(agent.q1.state_dict(), initial_q1_path)
+                torch.save(agent.q2.state_dict(), initial_q2_path)
+                print(f"✓ Saved initial checkpoint at episode {start_episode}")
+            except Exception as e:
+                print(f"WARNING: Could not save initial checkpoint: {e}")
     
     total_steps = 0
     num_updates = 0
@@ -646,19 +673,34 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
             policy_path = os.path.join(checkpoint_dir, f"sac_policy_ep{episode_num}.pth")
             q1_path = os.path.join(checkpoint_dir, f"sac_q1_ep{episode_num}.pth")
             q2_path = os.path.join(checkpoint_dir, f"sac_q2_ep{episode_num}.pth")
-            torch.save(agent.policy.state_dict(), policy_path)
-            torch.save(agent.q1.state_dict(), q1_path)
-            torch.save(agent.q2.state_dict(), q2_path)
-            print(f"Saved model at episode {episode_num} to {checkpoint_dir}/")
+            try:
+                torch.save(agent.policy.state_dict(), policy_path)
+                torch.save(agent.q1.state_dict(), q1_path)
+                torch.save(agent.q2.state_dict(), q2_path)
+                abs_policy_path = os.path.abspath(policy_path)
+                print(f"✓ Saved model at episode {episode_num} to {abs_policy_path}")
+                import sys
+                sys.stdout.flush()
+            except Exception as e:
+                print(f"ERROR: Failed to save checkpoint at episode {episode_num}: {e}")
+                import sys
+                sys.stdout.flush()
+                # Continue training even if save fails, but log the error
     
     # Final save
     policy_path = os.path.join(checkpoint_dir, "sac_policy_final.pth")
     q1_path = os.path.join(checkpoint_dir, "sac_q1_final.pth")
     q2_path = os.path.join(checkpoint_dir, "sac_q2_final.pth")
-    torch.save(agent.policy.state_dict(), policy_path)
-    torch.save(agent.q1.state_dict(), q1_path)
-    torch.save(agent.q2.state_dict(), q2_path)
-    print(f"Training complete! Model saved to {checkpoint_dir}/sac_*_final.pth")
+    try:
+        torch.save(agent.policy.state_dict(), policy_path)
+        torch.save(agent.q1.state_dict(), q1_path)
+        torch.save(agent.q2.state_dict(), q2_path)
+        abs_policy_path = os.path.abspath(policy_path)
+        print(f"Training complete! Final model saved to {abs_policy_path}")
+        print(f"  (Also saved: {os.path.abspath(q1_path)}, {os.path.abspath(q2_path)})")
+    except Exception as e:
+        print(f"ERROR: Failed to save final checkpoint: {e}")
+        raise RuntimeError(f"Could not save final checkpoint to {checkpoint_dir}")
     
     # Save and plot metrics
     if metrics:

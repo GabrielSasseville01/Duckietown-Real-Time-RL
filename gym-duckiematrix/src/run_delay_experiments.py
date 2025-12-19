@@ -43,6 +43,27 @@ def find_latest_checkpoint(checkpoint_dir: str):
     return str(latest_file), latest_ep
 
 
+def detect_checkpoint_config(checkpoint_path: str):
+    """
+    Detect if a checkpoint was trained with action conditioning by checking the input dimension.
+    
+    Returns:
+        bool: True if checkpoint was trained with action conditioning (obs_dim=5), False otherwise (obs_dim=3)
+    """
+    import torch
+    try:
+        checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        # Check the input dimension of the first fully connected layer
+        if 'fc1.weight' in checkpoint:
+            input_dim = checkpoint['fc1.weight'].shape[1]
+            # obs_dim=3 means no action conditioning, obs_dim=5 means with action conditioning
+            return input_dim == 5
+        return False
+    except Exception as e:
+        print(f"Warning: Could not detect checkpoint configuration from {checkpoint_path}: {e}")
+        return False
+
+
 def run_training_experiment(experiment_name: str, use_gym_mode: bool, step_duration: float,
                            num_episodes: int, max_steps_per_episode: int, 
                            checkpoint_dir: str, metrics_dir: str, 
@@ -144,14 +165,29 @@ def run_training_experiment(experiment_name: str, use_gym_mode: bool, step_durat
 
 
 def run_evaluation(experiment_name: str, checkpoint_path: str, use_gym_mode: bool,
-                  step_duration: float, num_episodes: int, max_steps: int):
+                  step_duration: float, num_episodes: int, max_steps: int,
+                  condition_on_prev_action: bool = None):
     """
     Run evaluation on a trained agent.
+    
+    Args:
+        experiment_name: Name of the experiment
+        checkpoint_path: Path to the checkpoint to evaluate
+        use_gym_mode: Whether using gym mode
+        step_duration: Step duration for gym mode
+        num_episodes: Number of evaluation episodes
+        max_steps: Maximum steps per episode
+        condition_on_prev_action: Whether to use action conditioning. If None, will auto-detect from checkpoint.
     
     Returns:
         Dictionary with evaluation metrics
     """
     print(f"\nEvaluating: {experiment_name}")
+    
+    # Auto-detect action conditioning from checkpoint if not specified
+    if condition_on_prev_action is None:
+        condition_on_prev_action = detect_checkpoint_config(checkpoint_path)
+        print(f"Auto-detected: checkpoint was trained {'WITH' if condition_on_prev_action else 'WITHOUT'} action conditioning")
     
     cmd = [
         "python", "src/sac_inference.py",
@@ -164,6 +200,9 @@ def run_evaluation(experiment_name: str, checkpoint_path: str, use_gym_mode: boo
     
     if use_gym_mode:
         cmd.extend(["--gym_mode", "--step_duration", str(step_duration)])
+    
+    if condition_on_prev_action:
+        cmd.extend(["--condition_on_prev_action"])
     
     result = subprocess.run(cmd)  # No capture_output - prints directly to console
     
@@ -278,13 +317,15 @@ def run_delay_experiments(step_durations: list, num_episodes: int, max_steps_per
         
         if checkpoint:
             # Evaluate
+            # Auto-detect the original training configuration from checkpoint
             eval_results = run_evaluation(
                 experiment_name=exp_name,
                 checkpoint_path=checkpoint,
                 use_gym_mode=False,
                 step_duration=0.0,
                 num_episodes=eval_episodes,
-                max_steps=eval_max_steps
+                max_steps=eval_max_steps,
+                condition_on_prev_action=None  # Auto-detect from checkpoint
             )
             if eval_results:
                 all_results.append(eval_results)
@@ -312,13 +353,15 @@ def run_delay_experiments(step_durations: list, num_episodes: int, max_steps_per
         
         if checkpoint:
             # Evaluate
+            # Auto-detect the original training configuration from checkpoint
             eval_results = run_evaluation(
                 experiment_name=exp_name,
                 checkpoint_path=checkpoint,
                 use_gym_mode=True,
                 step_duration=step_duration,
                 num_episodes=eval_episodes,
-                max_steps=eval_max_steps
+                max_steps=eval_max_steps,
+                condition_on_prev_action=None  # Auto-detect from checkpoint
             )
             if eval_results:
                 all_results.append(eval_results)

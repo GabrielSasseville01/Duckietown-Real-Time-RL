@@ -14,7 +14,7 @@ from time import sleep
 
 
 def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_steps=2000, 
-                  render=True, use_gym_mode=False, step_duration=0.1):
+                  render=True, use_gym_mode=False, step_duration=0.1, condition_on_prev_action=False):
     """
     Run inference with a trained SAC agent.
     
@@ -27,17 +27,23 @@ def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_
         render: Whether to add small delay for visualization
         use_gym_mode: Whether to use gym mode (faster, non-real-time) (default: False)
         step_duration: Step duration for gym mode in seconds (default: 0.1)
+        condition_on_prev_action: Whether to include previous action in observations (default: False)
     """
     # Create environment (gym mode or regular mode)
     if use_gym_mode:
         print(f"Using GYM MODE (step_duration={step_duration}s)")
+        if condition_on_prev_action:
+            print(f"Condition on Previous Action: ENABLED")
         env = DuckiematrixDB21JEnvGym(
             entity_name="map_0/vehicle_0", 
             include_curve_flag=True,
-            step_duration=step_duration
+            step_duration=step_duration,
+            condition_on_prev_action=condition_on_prev_action
         )
     else:
         print("Using REGULAR MODE (real-time)")
+        if condition_on_prev_action:
+            print(f"Condition on Previous Action: ENABLED")
         env = DuckiematrixDB21JEnv(entity_name="map_0/vehicle_0", include_curve_flag=True)
     
     # Create agent
@@ -211,6 +217,8 @@ if __name__ == "__main__":
                         help='Step duration for gym mode in seconds (default: 0.1)')
     parser.add_argument('--save_metrics', action='store_true',
                         help='Save evaluation metrics to JSON file')
+    parser.add_argument('--condition_on_prev_action', action='store_true',
+                        help='Include previous action in observations (for real-time RL testing)')
     
     args = parser.parse_args()
     
@@ -223,7 +231,8 @@ if __name__ == "__main__":
         max_steps=args.max_steps,
         render=not args.no_render,
         use_gym_mode=args.gym_mode,
-        step_duration=args.step_duration
+        step_duration=args.step_duration,
+        condition_on_prev_action=args.condition_on_prev_action
     )
     
     # Optionally save metrics to file
