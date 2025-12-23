@@ -350,11 +350,11 @@ delay_experiments/
 
 ### Experiment 3: Variable Delay (random delay distributions)
 
-Experiment 3 extends delay simulation by sampling a **different delay at each environment step**, which is more realistic than a single fixed delay. Each run trains a policy under one delay regime, then evaluates it under the **same** delay regime for a fair comparison.
+Experiment 3 extends delay simulation by sampling a different delay at each environment step, which is more realistic than a single fixed delay. Each run trains a policy under one delay configuration, then evaluates it under the same delay configuration/
 
-This experiment is designed around **action conditioning** (real-time RL): the policy is trained with `--condition_on_prev_action`.
+This experiment is designed around action conditioning (real-time RL): the policy is trained with `--condition_on_prev_action`.
 
-For a deeper explanation of the experiment matrix (means, distributions, CV values), see:
+For a deeper explanation of the experiment setup (means, distributions, CV values), see:
 - `gym-duckiematrix/EXPERIMENT_3_VARIABLE_DELAY.md`
 
 #### Run Experiment 3 (one or multiple means)
@@ -401,9 +401,9 @@ python src/plot_experiment3_results.py \
   --results_file delay_experiments/exp3_variable_delay_YYYYMMDD_HHMMSS/results/comparison_results.json
 ```
 
-The plots are saved next to the results JSON by default. Recommended “simple” report figures:
-- `exp3_reward_vs_mean_by_regime.png`
-- `exp3_abs_delta_vs_fixed_across_means.png`
+The plots are saved next to the results JSON by default. 
+- `exp3_reward_vs_mean_by_regime.png`: Reward analysis across all configurations runs
+- `exp3_abs_delta_vs_fixed_across_means.png`: Difference in performance of all variable delay configurations against fixed delay run
 
 #### Compare multiple Experiment 3 runs (e.g., different means in separate folders)
 
