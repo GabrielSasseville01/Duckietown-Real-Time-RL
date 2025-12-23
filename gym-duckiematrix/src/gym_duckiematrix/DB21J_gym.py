@@ -9,7 +9,7 @@ This version runs faster by controlling simulation timing:
 This allows non-real-time simulation for faster training.
 """
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional, Literal
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -18,7 +18,12 @@ import math
 from duckietown_messages.geometry_3d import Transformation, Position, Quaternion
 from duckietown_messages.standard import Header
 from duckietown.sdk.robots.duckiebot import DB21J
-from duckietown.sdk.utils.lane_position import MapInterpreter, LanePositionCalculator
+try:
+    # Correct module name
+    from duckietown.sdk.utils.lane_position import MapInterpreter, LanePositionCalculator
+except ModuleNotFoundError:
+    # Fallback for environments with nonstandard packaging (keeps error message actionable)
+    from duckietown.sdk.utils.lane_positsion import MapInterpreter, LanePositionCalculator  # type: ignore
 from .utils import quaternion_to_euler, compute_yaw
 from duckietown.sdk.utils.loop_lane_position import (
     is_out_of_lane,
@@ -41,7 +46,27 @@ class DuckiematrixDB21JEnvGym(gym.Env):
     Gym mode version of DuckiematrixDB21JEnv.
     Runs faster by controlling simulation timing instead of real-time.
     """
-    def __init__(self, entity_name = "map_0/vehicle_0", out_of_road_penalty = -10.0, include_curve_flag: bool = False, step_duration: float = 0.1, condition_on_prev_action: bool = False):
+    def __init__(
+        self,
+        entity_name="map_0/vehicle_0",
+        out_of_road_penalty=-10.0,
+        include_curve_flag: bool = False,
+        step_duration: float = 0.1,
+        condition_on_prev_action: bool = False,
+        # Variable-delay experiment (Experiment 3)
+        delay_mode: Literal["fixed", "random"] = "fixed",
+        delay_dist: str = "lognormal",
+        delay_mean: Optional[float] = None,
+        delay_std: Optional[float] = None,
+        delay_cv: Optional[float] = None,
+        delay_min: float = 0.0,
+        delay_max: Optional[float] = None,
+        delay_seed: Optional[int] = None,
+        # For bursty mixture distributions
+        delay_spike_prob: float = 0.1,
+        delay_spike_multiplier: float = 4.0,
+        delay_max_resample_tries: int = 50,
+    ):
         """
         Args:
             entity_name: Entity name for the robot
@@ -49,12 +74,38 @@ class DuckiematrixDB21JEnvGym(gym.Env):
             include_curve_flag: Whether to include curve flag in observations
             step_duration: Duration of each step in seconds (default: 0.1)
             condition_on_prev_action: Whether to include previous action in observations (for real-time RL)
+            delay_mode: "fixed" uses step_duration; "random" samples a delay per step
+            delay_dist: Distribution name for random delays: uniform|normal|lognormal|exponential|mixture
+            delay_mean: Mean delay in seconds (defaults to step_duration if not provided)
+            delay_std: Standard deviation in seconds (optional; overrides delay_cv if set)
+            delay_cv: Coefficient of variation std/mean (optional)
+            delay_min: Lower bound (seconds) for sampled delays (after truncation/clipping)
+            delay_max: Upper bound (seconds) for sampled delays (after truncation/clipping). None => unbounded.
+            delay_seed: RNG seed for delay sampling (for reproducibility)
+            delay_spike_prob: For "mixture": probability of sampling a spike component
+            delay_spike_multiplier: For "mixture": spike mean = delay_mean * multiplier
+            delay_max_resample_tries: For truncated sampling, max rejection attempts before clipping
         """
         self._shutdown = False
         self.include_curve_flag = include_curve_flag
         self.condition_on_prev_action = condition_on_prev_action
         self.pose_reset_available = True
-        self.step_duration = step_duration  # Duration to sleep in step function
+        self.step_duration = float(step_duration)  # Fixed delay (legacy)
+
+        # Variable-delay configuration (Experiment 3)
+        self.delay_mode: Literal["fixed", "random"] = delay_mode
+        self.delay_dist = str(delay_dist).lower().strip()
+        self.delay_mean = float(delay_mean) if delay_mean is not None else None
+        self.delay_std = float(delay_std) if delay_std is not None else None
+        self.delay_cv = float(delay_cv) if delay_cv is not None else None
+        self.delay_min = float(delay_min) if delay_min is not None else 0.0
+        self.delay_max = float(delay_max) if delay_max is not None else None
+        self.delay_spike_prob = float(delay_spike_prob)
+        self.delay_spike_multiplier = float(delay_spike_multiplier)
+        self.delay_max_resample_tries = int(delay_max_resample_tries)
+
+        self._delay_rng = np.random.default_rng(delay_seed)
+        self._last_step_delay: Optional[float] = None
         
         #create connection to the matrix engine
         self.robot: DB21J = DB21J("map_0/vehicle_0", simulated=True)
@@ -101,6 +152,158 @@ class DuckiematrixDB21JEnvGym(gym.Env):
         # Previous action tracking (for conditioning)
         if not condition_on_prev_action:
             self._prev_action = None  # Don't track if not needed
+
+    def _clip_delay(self, x: float) -> float:
+        lo = self.delay_min if self.delay_min is not None else 0.0
+        hi = self.delay_max
+        if hi is None:
+            return float(max(lo, x))
+        return float(min(max(lo, x), hi))
+
+    @staticmethod
+    def _lognormal_mu_sigma_from_mean_std(mean: float, std: float) -> Tuple[float, float]:
+        # If X ~ LogNormal(mu, sigma^2), then:
+        #   E[X] = exp(mu + sigma^2/2) = m
+        #   Var[X] = (exp(sigma^2)-1) * exp(2mu + sigma^2) = s^2
+        # => sigma^2 = ln(1 + (s^2 / m^2)), mu = ln(m) - sigma^2/2
+        if mean <= 0:
+            raise ValueError(f"Lognormal mean must be > 0, got {mean}")
+        if std <= 0:
+            return float(np.log(mean)), 0.0
+        var = std * std
+        sigma2 = float(np.log(1.0 + var / (mean * mean)))
+        sigma = float(np.sqrt(sigma2))
+        mu = float(np.log(mean) - 0.5 * sigma2)
+        return mu, sigma
+
+    def _resolve_random_delay_params(self) -> Tuple[float, float]:
+        mean = self.delay_mean if self.delay_mean is not None else self.step_duration
+        mean = float(mean)
+        if mean < 0:
+            mean = 0.0
+        if self.delay_std is not None:
+            std = float(max(0.0, self.delay_std))
+        elif self.delay_cv is not None:
+            std = float(max(0.0, self.delay_cv * mean))
+        else:
+            std = 0.0
+        return mean, std
+
+    def _sample_step_delay(self) -> float:
+        """
+        Return the delay (seconds) used for this step's sleep, either fixed or sampled.
+        This is intentionally implemented as a *drop-in* replacement for the legacy fixed delay,
+        so existing Experiments 1/2 stay unchanged unless delay_mode="random".
+        """
+        if self.delay_mode != "random":
+            return float(self.step_duration)
+
+        mean, std = self._resolve_random_delay_params()
+        dist = self.delay_dist
+
+        # Default bounds: for safety, keep non-negative; upper bound optional.
+        lo = self.delay_min if self.delay_min is not None else 0.0
+        hi = self.delay_max
+
+        if dist == "uniform":
+            # If std=0, fall back to fixed mean.
+            if std <= 0:
+                return self._clip_delay(mean)
+            half_width = float(np.sqrt(3.0) * std)
+            a = mean - half_width
+            b = mean + half_width
+            if hi is not None:
+                b = min(b, hi)
+            a = max(a, lo)
+            if b <= a:
+                return self._clip_delay(mean)
+            x = float(self._delay_rng.uniform(a, b))
+            return self._clip_delay(x)
+
+        if dist == "normal":
+            # Truncated normal via rejection sampling (preserves distribution better than clipping).
+            if std <= 0:
+                return self._clip_delay(mean)
+            last = mean
+            for _ in range(max(1, self.delay_max_resample_tries)):
+                x = float(self._delay_rng.normal(loc=mean, scale=std))
+                last = x
+                if x >= lo and (hi is None or x <= hi):
+                    return float(x)
+            return self._clip_delay(float(last))
+
+        if dist == "lognormal":
+            if mean <= 0:
+                return self._clip_delay(0.0)
+            if std <= 0:
+                return self._clip_delay(mean)
+            mu, sigma = self._lognormal_mu_sigma_from_mean_std(mean, std)
+            last = mean
+            for _ in range(max(1, self.delay_max_resample_tries)):
+                x = float(self._delay_rng.lognormal(mean=mu, sigma=sigma))
+                last = x
+                if x >= lo and (hi is None or x <= hi):
+                    return float(x)
+            return self._clip_delay(float(last))
+
+        if dist == "exponential":
+            # Exponential with mean=scale. Always non-negative.
+            scale = max(0.0, mean)
+            if scale <= 0:
+                return self._clip_delay(0.0)
+            last = scale
+            for _ in range(max(1, self.delay_max_resample_tries)):
+                x = float(self._delay_rng.exponential(scale=scale))
+                last = x
+                if x >= lo and (hi is None or x <= hi):
+                    return float(x)
+            return self._clip_delay(float(last))
+
+        if dist == "mixture":
+            # "Bursty" mixture: mostly "base" delays + occasional spikes (simulating load/GC jitter).
+            # We keep the *overall mean* approximately equal to delay_mean by adjusting base_mean.
+            p = float(np.clip(self.delay_spike_prob, 0.0, 1.0))
+            spike_mean = float(mean * max(0.0, self.delay_spike_multiplier))
+            base_mean = mean
+            if p < 1.0:
+                base_mean = (mean - p * spike_mean) / (1.0 - p)
+            if base_mean <= 0:
+                # Fallback: if parameters are inconsistent, just use a smaller base mean.
+                base_mean = max(1e-6, mean * (1.0 - p))
+
+            # Base uses a mild CV; spikes use the configured std/cv (often larger).
+            base_cv = 0.2 if self.delay_cv is None else max(0.0, min(0.4, self.delay_cv))
+            spike_std = std
+            if spike_std <= 0:
+                spike_std = max(0.1 * spike_mean, 1e-6)
+
+            # Sample component
+            if self._delay_rng.random() < p:
+                # Spike component (lognormal heavy tail)
+                mu, sigma = self._lognormal_mu_sigma_from_mean_std(spike_mean, spike_std)
+                last = spike_mean
+                for _ in range(max(1, self.delay_max_resample_tries)):
+                    x = float(self._delay_rng.lognormal(mean=mu, sigma=sigma))
+                    last = x
+                    if x >= lo and (hi is None or x <= hi):
+                        return float(x)
+                return self._clip_delay(float(last))
+            else:
+                # Base component (lognormal, low variance)
+                base_std = float(base_cv * base_mean)
+                if base_std <= 0:
+                    return self._clip_delay(base_mean)
+                mu, sigma = self._lognormal_mu_sigma_from_mean_std(base_mean, base_std)
+                last = base_mean
+                for _ in range(max(1, self.delay_max_resample_tries)):
+                    x = float(self._delay_rng.lognormal(mean=mu, sigma=sigma))
+                    last = x
+                    if x >= lo and (hi is None or x <= hi):
+                        return float(x)
+                return self._clip_delay(float(last))
+
+        # Unknown distribution: fall back to fixed mean
+        return self._clip_delay(mean)
 
     def initialize_sensors(self):
         #self.robot.camera.start()
@@ -185,6 +388,8 @@ class DuckiematrixDB21JEnvGym(gym.Env):
         - The step_duration simulates the delay between computing and executing the action
         """
         step_start_time = time.perf_counter()
+        step_delay = self._sample_step_delay()
+        self._last_step_delay = float(step_delay)
         
         # Step 1: Reset to computation_state_position (where action was computed for)
         # This simulates: "Action was computed for this state, now we apply it"
@@ -255,6 +460,9 @@ class DuckiematrixDB21JEnvGym(gym.Env):
                                 time.sleep(0.05)
                     except Exception as exc:
                         print(f"[WARN] pose_reset.set_pose failed: {exc}")
+                        # If pose_reset exists in some deployments but is missing here (404),
+                        # stop trying for the remainder of the run to avoid repeated DTPS errors.
+                        self.pose_reset_available = False
         
         # Step 2: Capture pose and save as last_pose (this is the state action was computed for)
         computation_pose = self.robot.pose.capture()
@@ -297,9 +505,9 @@ class DuckiematrixDB21JEnvGym(gym.Env):
         overhead_before_sleep = time.perf_counter() - step_start_time
         estimated_post_overhead = 0.015  # Estimate for pose capture + computation
         
-        # For step_duration=0.0, use a minimal time to allow robot to move
+        # For step_delay=0.0, use a minimal time to allow robot to move
         # Otherwise it would capture pose immediately and keep resetting to same position
-        effective_step_duration = max(self.step_duration, 0.01) if self.step_duration == 0.0 else self.step_duration
+        effective_step_duration = max(step_delay, 0.01) if step_delay == 0.0 else step_delay
         
         remaining_time = effective_step_duration - overhead_before_sleep - estimated_post_overhead
         
@@ -314,7 +522,7 @@ class DuckiematrixDB21JEnvGym(gym.Env):
                 # Re-set motors periodically to ensure they stay on
                 if elapsed < remaining_time:  # Don't re-set on last chunk
                     self.robot.motors.set_pwm(left=wl, right=wr)
-        elif self.step_duration == 0.0:
+        elif step_delay == 0.0:
             # Even for 0.0 delay, give robot minimal time to move
             # This prevents continuous resetting to the same position
             time.sleep(0.01)
@@ -416,7 +624,14 @@ class DuckiematrixDB21JEnvGym(gym.Env):
             # Stop motors for hard reset (termination)
             self.robot.motors.set_pwm(left=0.0, right=0.0)
 
-        self.info = {"pose": pose, "tile": tile_id, "is_curve_tile": bool(is_curve_tile)}
+        self.info = {
+            "pose": pose,
+            "tile": tile_id,
+            "is_curve_tile": bool(is_curve_tile),
+            "step_delay": float(step_delay),
+            "delay_mode": self.delay_mode,
+            "delay_dist": self.delay_dist if self.delay_mode == "random" else "fixed",
+        }
         info = self._get_info()
         
         # Note: Motors are NOT stopped for normal steps

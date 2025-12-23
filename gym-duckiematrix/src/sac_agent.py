@@ -23,6 +23,22 @@ import math
 import argparse
 import random
 import time
+from typing import Optional
+
+
+def _set_global_seeds(seed: int) -> None:
+    """Best-effort seeding for reproducibility across numpy/torch/random."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    # Make CuDNN deterministic when possible (can reduce throughput slightly)
+    try:
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    except Exception:
+        pass
 
 
 class ReplayBuffer:
@@ -383,7 +399,20 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
               policy_checkpoint=None, q1_checkpoint=None, q2_checkpoint=None, start_episode=0,
               checkpoint_dir="checkpoints", use_gym_mode=False, step_duration=0.1,
               metrics_dir="training_logs", save_metrics=True, hyperparams=None, hyperparams_file=None,
-              condition_on_prev_action=False):
+              condition_on_prev_action=False,
+              # Experiment 3: variable delay (only used when use_gym_mode=True)
+              delay_mode: str = "fixed",
+              delay_dist: str = "lognormal",
+              delay_mean: Optional[float] = None,
+              delay_std: Optional[float] = None,
+              delay_cv: Optional[float] = None,
+              delay_min: float = 0.0,
+              delay_max: Optional[float] = None,
+              delay_seed: Optional[int] = None,
+              delay_spike_prob: float = 0.1,
+              delay_spike_multiplier: float = 4.0,
+              # General reproducibility
+              seed: Optional[int] = None):
     """
     Train SAC agent on Duckiematrix environment.
     
@@ -408,6 +437,13 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
     """
     import os
     import json
+
+    if seed is not None:
+        print(f"Setting global seed: {seed}")
+        _set_global_seeds(int(seed))
+        # If delay_seed wasn't explicitly provided, tie env delay RNG to the global seed.
+        if delay_seed is None:
+            delay_seed = int(seed)
     
     # Load hyperparameters from file if provided
     if hyperparams_file is not None:
@@ -465,6 +501,19 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
             "start_episode": start_episode,
             "use_gym_mode": use_gym_mode,
             "step_duration": step_duration,
+            "delay": {
+                "delay_mode": delay_mode,
+                "delay_dist": delay_dist,
+                "delay_mean": delay_mean,
+                "delay_std": delay_std,
+                "delay_cv": delay_cv,
+                "delay_min": delay_min,
+                "delay_max": delay_max,
+                "delay_seed": delay_seed,
+                "delay_spike_prob": delay_spike_prob,
+                "delay_spike_multiplier": delay_spike_multiplier,
+            },
+            "seed": seed,
             "checkpoint_dir": checkpoint_dir,
             "hyperparams": hyperparams,
         }
@@ -479,7 +528,17 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
             entity_name="map_0/vehicle_0", 
             include_curve_flag=True,
             step_duration=step_duration,
-            condition_on_prev_action=condition_on_prev_action
+            condition_on_prev_action=condition_on_prev_action,
+            delay_mode=delay_mode,
+            delay_dist=delay_dist,
+            delay_mean=delay_mean,
+            delay_std=delay_std,
+            delay_cv=delay_cv,
+            delay_min=delay_min,
+            delay_max=delay_max,
+            delay_seed=delay_seed,
+            delay_spike_prob=delay_spike_prob,
+            delay_spike_multiplier=delay_spike_multiplier,
         )
     else:
         print("Using REGULAR MODE (real-time)")
@@ -611,7 +670,8 @@ def train_sac(num_episodes=1500, max_steps_per_episode=1000,
                     alpha_loss=last_alpha_loss,
                     alpha_value=alpha_val,
                     buffer_size=len(agent.replay_buffer),
-                    step_time=step_time
+                    step_time=step_time,
+                    step_delay=info.get("step_delay") if isinstance(info, dict) else None,
                 )
             
             # Update networks
@@ -754,6 +814,35 @@ if __name__ == "__main__":
                         help='Path to JSON file containing hyperparameters (default: None)')
     parser.add_argument('--condition_on_prev_action', action='store_true',
                         help='Include previous action in observations (for real-time RL testing)')
+    # Alias used by some docs/teammates
+    parser.add_argument('--action-conditioning', dest='condition_on_prev_action', action='store_true',
+                        help='Alias for --condition_on_prev_action')
+
+    # Experiment 3: variable delay distribution (used only when --gym_mode)
+    parser.add_argument('--delay_mode', type=str, default='fixed', choices=['fixed', 'random'],
+                        help='Delay mode: fixed uses --step_duration; random samples per step (default: fixed)')
+    parser.add_argument('--delay_dist', type=str, default='lognormal',
+                        choices=['uniform', 'normal', 'lognormal', 'exponential', 'mixture'],
+                        help='Distribution for random delays (default: lognormal)')
+    parser.add_argument('--delay_mean', type=float, default=None,
+                        help='Mean delay (seconds) for random mode (default: uses --step_duration)')
+    parser.add_argument('--delay_std', type=float, default=None,
+                        help='Std dev (seconds) for random mode (overrides --delay_cv)')
+    parser.add_argument('--delay_cv', type=float, default=None,
+                        help='Coefficient of variation std/mean for random mode (e.g., 0.2)')
+    parser.add_argument('--delay_min', type=float, default=0.0,
+                        help='Minimum delay bound (seconds) (default: 0.0)')
+    parser.add_argument('--delay_max', type=float, default=None,
+                        help='Maximum delay bound (seconds) (default: unbounded)')
+    parser.add_argument('--delay_seed', type=int, default=None,
+                        help='Seed for delay RNG (default: uses --seed if provided)')
+    parser.add_argument('--delay_spike_prob', type=float, default=0.1,
+                        help='For delay_dist=mixture: probability of spikes (default: 0.1)')
+    parser.add_argument('--delay_spike_multiplier', type=float, default=4.0,
+                        help='For delay_dist=mixture: spike mean = delay_mean * multiplier (default: 4.0)')
+
+    parser.add_argument('--seed', type=int, default=None,
+                        help='Global seed for numpy/torch/random (and delay RNG if delay_seed not set)')
     
     args = parser.parse_args()
     
@@ -774,5 +863,16 @@ if __name__ == "__main__":
         metrics_dir=args.metrics_dir,
         save_metrics=not args.no_metrics,
         hyperparams_file=args.hyperparams_file,
-        condition_on_prev_action=args.condition_on_prev_action
+        condition_on_prev_action=args.condition_on_prev_action,
+        delay_mode=args.delay_mode,
+        delay_dist=args.delay_dist,
+        delay_mean=args.delay_mean,
+        delay_std=args.delay_std,
+        delay_cv=args.delay_cv,
+        delay_min=args.delay_min,
+        delay_max=args.delay_max,
+        delay_seed=args.delay_seed,
+        delay_spike_prob=args.delay_spike_prob,
+        delay_spike_multiplier=args.delay_spike_multiplier,
+        seed=args.seed,
     )

@@ -11,10 +11,33 @@ from gym_duckiematrix.DB21J import DuckiematrixDB21JEnv
 from gym_duckiematrix.DB21J_gym import DuckiematrixDB21JEnvGym
 from sac_agent import SACAgent
 from time import sleep
+from typing import Optional
 
 
-def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_steps=2000, 
-                  render=True, use_gym_mode=False, step_duration=0.1, condition_on_prev_action=False):
+def _set_global_seeds(seed: int) -> None:
+    import random
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_steps=2000,
+                  render=True, use_gym_mode=False, step_duration=0.1,
+                  condition_on_prev_action: bool = False,
+                  # Experiment 3: variable delay config (used only in gym_mode)
+                  delay_mode: str = "fixed",
+                  delay_dist: str = "lognormal",
+                  delay_mean: Optional[float] = None,
+                  delay_std: Optional[float] = None,
+                  delay_cv: Optional[float] = None,
+                  delay_min: float = 0.0,
+                  delay_max: Optional[float] = None,
+                  delay_seed: Optional[int] = None,
+                  delay_spike_prob: float = 0.1,
+                  delay_spike_multiplier: float = 4.0,
+                  seed: Optional[int] = None):
     """
     Run inference with a trained SAC agent.
     
@@ -29,6 +52,12 @@ def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_
         step_duration: Step duration for gym mode in seconds (default: 0.1)
         condition_on_prev_action: Whether to include previous action in observations (default: False)
     """
+    if seed is not None:
+        print(f"Setting global seed: {seed}")
+        _set_global_seeds(int(seed))
+        if delay_seed is None:
+            delay_seed = int(seed)
+
     # Create environment (gym mode or regular mode)
     if use_gym_mode:
         print(f"Using GYM MODE (step_duration={step_duration}s)")
@@ -38,7 +67,17 @@ def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_
             entity_name="map_0/vehicle_0", 
             include_curve_flag=True,
             step_duration=step_duration,
-            condition_on_prev_action=condition_on_prev_action
+            condition_on_prev_action=condition_on_prev_action,
+            delay_mode=delay_mode,
+            delay_dist=delay_dist,
+            delay_mean=delay_mean,
+            delay_std=delay_std,
+            delay_cv=delay_cv,
+            delay_min=delay_min,
+            delay_max=delay_max,
+            delay_seed=delay_seed,
+            delay_spike_prob=delay_spike_prob,
+            delay_spike_multiplier=delay_spike_multiplier,
         )
     else:
         print("Using REGULAR MODE (real-time)")
@@ -66,6 +105,17 @@ def run_inference(policy_path, q1_path=None, q2_path=None, num_episodes=10, max_
     agent.load_checkpoint(policy_path, q1_path, q2_path)
     print(f"Loaded model from {policy_path}")
     print("Running in deterministic mode (no exploration)\n")
+
+    # Quick sanity-check (helps catch mismatched action-conditioning during eval)
+    try:
+        loaded_policy_obs_dim = agent.policy.fc1.in_features
+        if loaded_policy_obs_dim != obs_dim:
+            print("WARNING: Observation dimension mismatch!")
+            print(f"  Checkpoint policy expects obs_dim={loaded_policy_obs_dim}")
+            print(f"  Environment provides obs_dim={obs_dim}")
+            print("  Make sure --condition_on_prev_action matches training.")
+    except Exception:
+        pass
     
     # Benchmark forward pass time
     print("Benchmarking forward pass time...")
@@ -218,7 +268,34 @@ if __name__ == "__main__":
     parser.add_argument('--save_metrics', action='store_true',
                         help='Save evaluation metrics to JSON file')
     parser.add_argument('--condition_on_prev_action', action='store_true',
-                        help='Include previous action in observations (for real-time RL testing)')
+                        help='Include previous action in observations (MUST match training if enabled)')
+    parser.add_argument('--action-conditioning', dest='condition_on_prev_action', action='store_true',
+                        help='Alias for --condition_on_prev_action')
+
+    # Experiment 3: variable delay distribution (used only when --gym_mode)
+    parser.add_argument('--delay_mode', type=str, default='fixed', choices=['fixed', 'random'],
+                        help='Delay mode: fixed uses --step_duration; random samples per step (default: fixed)')
+    parser.add_argument('--delay_dist', type=str, default='lognormal',
+                        choices=['uniform', 'normal', 'lognormal', 'exponential', 'mixture'],
+                        help='Distribution for random delays (default: lognormal)')
+    parser.add_argument('--delay_mean', type=float, default=None,
+                        help='Mean delay (seconds) for random mode (default: uses --step_duration)')
+    parser.add_argument('--delay_std', type=float, default=None,
+                        help='Std dev (seconds) for random mode (overrides --delay_cv)')
+    parser.add_argument('--delay_cv', type=float, default=None,
+                        help='Coefficient of variation std/mean for random mode (e.g., 0.2)')
+    parser.add_argument('--delay_min', type=float, default=0.0,
+                        help='Minimum delay bound (seconds) (default: 0.0)')
+    parser.add_argument('--delay_max', type=float, default=None,
+                        help='Maximum delay bound (seconds) (default: unbounded)')
+    parser.add_argument('--delay_seed', type=int, default=None,
+                        help='Seed for delay RNG (default: uses --seed if provided)')
+    parser.add_argument('--delay_spike_prob', type=float, default=0.1,
+                        help='For delay_dist=mixture: probability of spikes (default: 0.1)')
+    parser.add_argument('--delay_spike_multiplier', type=float, default=4.0,
+                        help='For delay_dist=mixture: spike mean = delay_mean * multiplier (default: 4.0)')
+    parser.add_argument('--seed', type=int, default=None,
+                        help='Global seed for numpy/torch/random (and delay RNG if delay_seed not set)')
     
     args = parser.parse_args()
     
@@ -232,7 +309,18 @@ if __name__ == "__main__":
         render=not args.no_render,
         use_gym_mode=args.gym_mode,
         step_duration=args.step_duration,
-        condition_on_prev_action=args.condition_on_prev_action
+        condition_on_prev_action=args.condition_on_prev_action,
+        delay_mode=args.delay_mode,
+        delay_dist=args.delay_dist,
+        delay_mean=args.delay_mean,
+        delay_std=args.delay_std,
+        delay_cv=args.delay_cv,
+        delay_min=args.delay_min,
+        delay_max=args.delay_max,
+        delay_seed=args.delay_seed,
+        delay_spike_prob=args.delay_spike_prob,
+        delay_spike_multiplier=args.delay_spike_multiplier,
+        seed=args.seed,
     )
     
     # Optionally save metrics to file

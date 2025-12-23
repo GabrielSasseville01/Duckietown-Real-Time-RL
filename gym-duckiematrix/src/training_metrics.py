@@ -49,6 +49,7 @@ class TrainingMetrics:
         
         # Step-level metrics
         self.step_rewards = []
+        self.step_delays = []  # Gym-mode simulated delay used for the step (seconds), if provided
         self.step_q1_losses = []
         self.step_q2_losses = []
         self.step_policy_losses = []
@@ -121,7 +122,8 @@ class TrainingMetrics:
     def record_step_metrics(self, reward: float, q1_loss: Optional[float] = None,
                            q2_loss: Optional[float] = None, policy_loss: Optional[float] = None,
                            alpha_loss: Optional[float] = None, alpha_value: Optional[float] = None,
-                           buffer_size: Optional[int] = None, step_time: Optional[float] = None):
+                           buffer_size: Optional[int] = None, step_time: Optional[float] = None,
+                           step_delay: Optional[float] = None):
         """
         Record step-level metrics.
         
@@ -134,8 +136,15 @@ class TrainingMetrics:
             alpha_value: Current alpha value (optional)
             buffer_size: Current replay buffer size (optional)
             step_time: Time taken for this step (optional)
+            step_delay: Simulated computation delay used by the gym environment for this step (optional, seconds)
         """
         self.step_rewards.append(reward)
+        if step_delay is not None:
+            try:
+                self.step_delays.append(float(step_delay))
+            except Exception:
+                # Keep metrics robust even if something non-numeric gets passed
+                pass
         if q1_loss is not None:
             self.step_q1_losses.append(q1_loss)
         if q2_loss is not None:
@@ -174,6 +183,7 @@ class TrainingMetrics:
             },
             "step_metrics": {
                 "rewards": self.step_rewards,
+                "delays_seconds": self.step_delays,
                 "q1_losses": self.step_q1_losses,
                 "q2_losses": self.step_q2_losses,
                 "policy_losses": self.step_policy_losses,
@@ -245,6 +255,18 @@ class TrainingMetrics:
                 "std_ms": float(np.std(self.step_times) * 1000),
                 "min_ms": float(np.min(self.step_times) * 1000),
                 "max_ms": float(np.max(self.step_times) * 1000),
+            }
+
+        if self.step_delays:
+            delays = np.array(self.step_delays, dtype=np.float64)
+            stats["step_delays"] = {
+                "mean_ms": float(np.mean(delays) * 1000),
+                "std_ms": float(np.std(delays) * 1000),
+                "min_ms": float(np.min(delays) * 1000),
+                "max_ms": float(np.max(delays) * 1000),
+                "p50_ms": float(np.percentile(delays, 50) * 1000),
+                "p90_ms": float(np.percentile(delays, 90) * 1000),
+                "p99_ms": float(np.percentile(delays, 99) * 1000),
             }
         
         if self.episode_start_times and self.episode_end_times and len(self.episode_start_times) == len(self.episode_end_times):

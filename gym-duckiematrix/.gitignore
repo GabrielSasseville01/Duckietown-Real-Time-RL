@@ -74,6 +74,12 @@ html/*
 pdf/*
 !pdf/PDF_WILL_BE_GENERATED_HERE
 
+# Experiment / training artifacts (generated)
+delay_experiments/
+checkpoints/
+src/delay_experiments/
+src/checkpoints/
+
 # PyBuilder
 target/
 
