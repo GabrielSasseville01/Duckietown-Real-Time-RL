@@ -348,6 +348,75 @@ delay_experiments/
         └── summary.json
 ```
 
+### Experiment 3: Variable Delay (random delay distributions)
+
+Experiment 3 extends delay simulation by sampling a **different delay at each environment step**, which is more realistic than a single fixed delay. Each run trains a policy under one delay regime, then evaluates it under the **same** delay regime for a fair comparison.
+
+This experiment is designed around **action conditioning** (real-time RL): the policy is trained with `--condition_on_prev_action`.
+
+For a deeper explanation of the experiment matrix (means, distributions, CV values), see:
+- `gym-duckiematrix/EXPERIMENT_3_VARIABLE_DELAY.md`
+
+#### Run Experiment 3 (one or multiple means)
+
+From `gym-duckiematrix/`:
+
+```bash
+python src/run_variable_delay_experiments.py \
+  --means 0.05 0.1 0.2 \
+  --num_episodes 400 \
+  --max_steps_per_episode 2000 \
+  --eval_episodes 20 \
+  --eval_max_steps 2000 \
+  --save_freq 100 \
+  --seed 0 \
+  --base_dir delay_experiments \
+  --experiment_name exp3_variable_delay
+```
+
+This creates a timestamped directory:
+
+```
+delay_experiments/
+└── exp3_variable_delay_YYYYMMDD_HHMMSS/
+    ├── checkpoints/<run_name>/
+    │   ├── sac_policy_ep100.pth
+    │   ├── ...
+    │   ├── sac_policy_final.pth
+    │   └── evaluation_metrics.json
+    ├── metrics/<run_name>/
+    │   ├── metrics/training_metrics.json   # includes realized delay stats
+    │   └── plots/*.png
+    └── results/
+        ├── experiment_matrix.json          # the exact configs that were run
+        └── comparison_results.json         # evaluation summary for each run
+```
+
+#### Plot Experiment 3 results
+
+Generate plots for a single Experiment 3 directory:
+
+```bash
+python src/plot_experiment3_results.py \
+  --results_file delay_experiments/exp3_variable_delay_YYYYMMDD_HHMMSS/results/comparison_results.json
+```
+
+The plots are saved next to the results JSON by default. Recommended “simple” report figures:
+- `exp3_reward_vs_mean_by_regime.png`
+- `exp3_abs_delta_vs_fixed_across_means.png`
+
+#### Compare multiple Experiment 3 runs (e.g., different means in separate folders)
+
+If you ran different means in separate directories, you can produce combined plots from multiple result files:
+
+```bash
+python src/plot_experiment3_results.py \
+  --results_files \
+    delay_experiments/exp3_variable_delay_RUN_A/results/comparison_results.json \
+    delay_experiments/exp3_variable_delay_RUN_B/results/comparison_results.json \
+  --out_dir delay_experiments/exp3_comparison_plots
+```
+
 ## Analysis and Visualization
 
 ### Analyze Delay Experiments
@@ -458,11 +527,13 @@ gym-duckiematrix/
 │   ├── ppo_agent.py              # PPO implementation
 │   ├── reinforce_agent.py        # REINFORCE implementation
 │   ├── run_delay_experiments.py  # Delay experiment runner
+│   ├── run_variable_delay_experiments.py  # Experiment 3 runner (variable delay distributions)
+│   ├── plot_experiment3_results.py        # Experiment 3 plotting (single run + multi-run comparison)
 │   ├── hyperparameter_tuning.py  # Hyperparameter search
 │   ├── analyze_delay_experiments.py  # Analysis tools
 │   ├── compare_experiments.py    # Comparison utilities
 │   ├── plot_metrics.py           # Plotting utilities
-│   ├── training_metrics.py       # Metrics tracking
+│   ├── training_metrics.py       # Metrics tracking (includes realized delay stats for Experiment 3)
 │   └── gym_duckiematrix/         # Gymnasium environment wrapper
 │       ├── DB21J_gym.py          # Main Gym environment class
 │       └── DB21J.py              # Default Real-Time RL
@@ -471,6 +542,7 @@ gym-duckiematrix/
 ├── training_logs/                # Default metrics directory
 ├── delay_experiments/            # Delay experiment results
 ├── hyperparameter_tuning/        # Hyperparameter tuning results
+├── EXPERIMENT_3_VARIABLE_DELAY.md # Experiment 3 write-up + commands
 ├── requirements.txt              # Python dependencies
 └── README.md                     # This file
 ```
