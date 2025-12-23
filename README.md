@@ -390,6 +390,66 @@ python src/plot_metrics.py \
 
 ## Project Structure
 
+This project consists of three main components that work together to provide a complete RL training environment:
+
+### Component Overview
+
+```
+Real_Time/
+├── dt-duckiematrix/              # Duckietown Matrix Engine (simulation core)
+├── duckietown-sdk/               # Duckietown SDK (Python API)
+└── gym-duckiematrix/             # Gymnasium wrapper & RL algorithms
+```
+
+### 1. `dt-duckiematrix/` - Duckietown Matrix Engine
+
+The **Duckietown Matrix Engine** is the core simulation engine that runs in a Docker container. It provides:
+
+- **Physics simulation**: Realistic vehicle dynamics, collision detection, and world physics
+- **Rendering**: 3D visualization of the Duckietown environment
+- **Map management**: Handles Duckietown maps, tiles, and road layouts
+- **Robot entities**: Simulates various Duckiebot models (DB18, DB19, DB21J, etc.)
+- **Communication**: ZMQ-based connectors for real-time and gym mode operation
+
+**Key Features**:
+- Runs in two modes: `realtime` (real-time synchronization) or `gym` (faster, non-real-time)
+- Manages the simulation world, robots, cameras, and sensors
+- Provides the low-level simulation infrastructure
+
+**Location**: `dt-duckiematrix/packages/duckiematrix_engine/`
+
+### 2. `duckietown-sdk/` - Duckietown SDK
+
+The **Duckietown SDK** provides the Python API and utilities for interacting with the Duckietown ecosystem:
+
+- **Robot interface**: `DB21J` class for controlling simulated robots
+- **Map interpretation**: `MapInterpreter` and `LanePositionCalculator` for lane-following
+- **Message handling**: Duckietown message types and protocols
+- **Utilities**: Helper functions for coordinate transformations, lane position calculations, etc.
+
+**Key Features**:
+- High-level Python API that abstracts the low-level simulation details
+- Used by `gym-duckiematrix` to communicate with `dt-duckiematrix`
+- Provides robot control, sensor access, and map utilities
+
+**Location**: `duckietown-sdk/src/duckietown/`
+
+### 3. `gym-duckiematrix/` - Gymnasium Wrapper & RL Implementation
+
+The **gym-duckiematrix** package provides the Gymnasium (OpenAI Gym) interface and contains all RL algorithms:
+
+- **Gymnasium environment**: `DuckiematrixDB21JEnvGym` class that implements the standard Gym API
+- **RL algorithms**: SAC, PPO, and REINFORCE implementations
+- **Training scripts**: Agent training, evaluation, and hyperparameter tuning
+- **Experiment management**: Delay experiments, analysis tools, and visualization
+
+**Key Features**:
+- Wraps the Duckietown simulation in a standard Gymnasium interface (`reset()`, `step()`, etc.)
+- Implements observation spaces (lane position, heading angle, optional curve flags)
+- Supports action conditioning for real-time RL
+- Contains all training, evaluation, and analysis code
+
+**Structure**:
 ```
 gym-duckiematrix/
 ├── src/
@@ -403,15 +463,40 @@ gym-duckiematrix/
 │   ├── compare_experiments.py    # Comparison utilities
 │   ├── plot_metrics.py           # Plotting utilities
 │   ├── training_metrics.py       # Metrics tracking
-│   └── gym_duckiematrix/         # Duckietown environment
+│   └── gym_duckiematrix/         # Gymnasium environment wrapper
+│       ├── DB21J_gym.py          # Main Gym environment class
+│       └── DB21J.py              # Default Real-Time RL
+│       └── utils.py              # Helper functions
 ├── checkpoints/                  # Default checkpoint directory
 ├── training_logs/                # Default metrics directory
 ├── delay_experiments/            # Delay experiment results
 ├── hyperparameter_tuning/        # Hyperparameter tuning results
-├── dt-duckiematrix/              # Duckietown Matrix (submodule)
 ├── requirements.txt              # Python dependencies
 └── README.md                     # This file
 ```
+
+### How They Work Together
+
+1. **dt-duckiematrix** runs as a Docker container, providing the simulation engine
+2. **duckietown-sdk** provides Python classes (like `DB21J`) that connect to the engine via ZMQ
+3. **gym-duckiematrix** uses the SDK to create a Gymnasium environment, which RL algorithms can train on
+
+**Data Flow**:
+```
+RL Algorithm (SAC/PPO/REINFORCE)
+    ↓
+gym-duckiematrix (Gymnasium wrapper)
+    ↓
+duckietown-sdk (Python API)
+    ↓
+dt-duckiematrix (Simulation engine in Docker)
+```
+
+When you run training, the RL agent calls `env.step(action)`, which:
+1. Uses `duckietown-sdk`'s `DB21J` class to send actions to the robot
+2. The SDK communicates with `dt-duckiematrix` via ZMQ
+3. The engine simulates the action and returns observations
+4. The gym wrapper formats observations for the RL algorithm
 
 ## Troubleshooting
 
@@ -467,15 +552,15 @@ If you use this code in your research, please cite:
 ```bibtex
 @misc{duckietown-realtime-rl,
   title={Duckietown Real-Time Reinforcement Learning},
-  author={Your Name},
+  author={Gabriel Sasseville, Guillaume Gagné-Labelle, Nicolas Bosteels},
   year={2024},
-  url={https://github.com/yourusername/repo}
+  url={https://github.com/GabrielSasseville01/Duckietown-Real-Time-RL}
 }
 ```
 
 ## License
 
-[Specify your license here]
+Common BY-SA
 
 ## Acknowledgments
 
