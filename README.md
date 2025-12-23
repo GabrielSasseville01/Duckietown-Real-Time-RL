@@ -395,7 +395,7 @@ This project consists of three main components that work together to provide a c
 ### Component Overview
 
 ```
-Real_Time/
+Duckietown-Real-Time-RL/
 ├── dt-duckiematrix/              # Duckietown Matrix Engine (simulation core)
 ├── duckietown-sdk/               # Duckietown SDK (Python API)
 └── gym-duckiematrix/             # Gymnasium wrapper & RL algorithms
