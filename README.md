@@ -38,19 +38,13 @@ This repository contains implementations of Reinforcement Learning algorithms (S
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd Real_Time/gym-duckiematrix
+git clone git@github.com:GabrielSasseville01/Duckietown-Real-Time-RL.git
+cd Duckietown-Real-Time-RL
 ```
 
 ### 2. Set Up Virtual Environment
 
-We recommend using the provided Duckietown environment:
-
-```bash
-source /home/gsasseville/Files/UDEM/PhD/Cours/Duckietown/Project/duckieproj/bin/activate
-```
-
-Alternatively, create a new virtual environment and install dependencies:
+Create a new virtual environment and install dependencies:
 
 ```bash
 python -m venv venv
