@@ -1,5 +1,9 @@
 # Duckietown Real-Time Reinforcement Learning
 
+> 📖 **Read the full blog post**: [**Testing Real-Time Reinforcement Learning in Duckiematrix**](https://gabrielsasseville01.github.io/Duckietown-Real-Time-RL/)
+>
+> Explore our research on real-time RL challenges, methodology, experiments, and results in autonomous driving environments.
+
 Welcome! This repository contains implementations of Reinforcement Learning algorithms (SAC, PPO, REINFORCE) for autonomous vehicle control in the Duckietown environment, with support for real-time training and simulation with computation delays.
 
 ## 📚 Repository Branches
@@ -73,9 +77,9 @@ The `code` branch contains:
 
 ## 🔗 Quick Links
 
-- **Blog Post**: [Link to blog post - if available]
-- **Code Branch README**: Switch to `code` branch and see `README.md`
-- **Repository**: [GitHub repository URL]
+- **📖 Blog Post**: [Testing Real-Time Reinforcement Learning in Duckiematrix](https://gabrielsasseville01.github.io/Duckietown-Real-Time-RL/)
+- **💻 Code Branch README**: Switch to `code` branch and see `README.md`
+- **🔗 Repository**: [GitHub Repository](https://github.com/GabrielSasseville01/Duckietown-Real-Time-RL)
 
 ## 📝 Citation
 
