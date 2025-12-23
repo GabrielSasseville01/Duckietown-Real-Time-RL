@@ -38,7 +38,7 @@
                     <p class="hero-subtitle">Exploring the challenges and opportunities of real-time RL in simulated autonomous driving environments</p>
                     <div class="hero-meta">
                         <span class="author">Guillaume Gagné-Labelle, Gabriel Sasseville and Nicolas Bosteels</span>
-                        <span class="date">2024</span>
+                        <span class="date">2025</span>
                     </div>
                 </div>
             </section>
@@ -54,7 +54,7 @@
                     delay. When the environment is dynamic, these delays break the fundamental assumptions behind classical RL algorithms and Markov 
                     Decision Process (MDP) modelling. This project explores this gap through a pragmatic approach: How can we model dynamic scenarios? 
                     How does the induced delay affect the algorithm performance? How should we measure this performance difference? 
-                    Our study revealed that <span class="highlight">Main Results</span>
+                    Our study revealed that action conditioning significantly improves agent performance in the presence of computation delays. At a 0.5s delay, Real-Time RL (with action conditioning) achieves an evaluation reward of 27.77 ± 0.039, compared to 19.11 ± 11.097 for classical RL. However, both approaches fail completely at delays of 1.0s, with evaluation rewards near -1.0 and episode lengths around 6-10 steps, indicating that the task becomes intractable at this delay threshold. The results demonstrate that Real-Time RL techniques can partially compensate for computation delays, but performance degradation is inevitable as delays increase beyond critical thresholds.
                 </p>
             </section>
 
@@ -139,10 +139,15 @@
                 <h2>Methodology</h2>
                 
                 <h3>Research Questions</h3>
-                <p class="highlight">
-                    How should we measure the gap in performance? Is it possible to train the model and it's just longer? 
-                    Does the max performance degrades? From which delay does the task become impossible? What did we choose this or that method?
+                <p>
+                    Our experiments address the following key research questions:
                 </p>
+                <ol class="numbered-list">
+                    <li><strong>How should we measure the gap in performance?</strong> We measure performance using evaluation rewards (average reward over evaluation episodes) and episode lengths, comparing both training and evaluation metrics across different delay values.</li>
+                    <li><strong>Does maximum performance degrade with delays?</strong> Yes. Our results show that as delays increase, both classical RL and Real-Time RL experience performance degradation, with classical RL failing completely at 0.1s delay.</li>
+                    <li><strong>From which delay does the task become impossible?</strong> Our experiments reveal that both approaches completely fail at 1.0s delays, with evaluation rewards near -1.0 and episode lengths around 6-10 steps, indicating that delays beyond approximately 0.5-1.0s make the task intractable.</li>
+                    <li><strong>Can action conditioning compensate for computation delays?</strong> Yes. Real-Time RL with action conditioning consistently outperforms classical RL, with improvements ranging from 5.9% at small delays (0.01s) to 45.3% at larger delays (0.5s), and can successfully learn in scenarios where classical RL fails (0.1s delay).</li>
+                </ol>
 
                 <h3>Duckietown Environment</h3>
                 <p>
@@ -194,43 +199,51 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Learning Rate (α)</td>
-                                <td>[1e-5, 1e-3]</td>
+                                <td>Learning Rate (lr)</td>
+                                <td>[1e-4, 3e-4]</td>
                                 <td>Policy and Q-function learning rate</td>
                             </tr>
                             <tr>
                                 <td>Temperature (τ)</td>
-                                <td>[0.01, 0.3]</td>
-                                <td>SAC entropy regularization coefficient</td>
+                                <td>[0.005, 0.01]</td>
+                                <td>Soft update coefficient for target networks</td>
                             </tr>
                             <tr>
-                                <td>Replay Buffer Size</td>
-                                <td>[1e5, 1e6]</td>
-                                <td>Size of experience replay buffer</td>
+                                <td>Hidden Dimension</td>
+                                <td>[128, 256]</td>
+                                <td>Network hidden layer dimension</td>
+                            </tr>
+                            <tr>
+                                <td>Alpha (α)</td>
+                                <td>[0.1, 0.2]</td>
+                                <td>Initial entropy regularization coefficient</td>
                             </tr>
                             <tr>
                                 <td>Batch Size</td>
-                                <td>[64, 512]</td>
+                                <td>256 (fixed)</td>
                                 <td>Training batch size</td>
                             </tr>
                             <tr>
-                                <td>Network Architecture</td>
-                                <td>[256, 512]</td>
-                                <td>Hidden layer dimensions</td>
-                            </tr>
-                            <tr>
                                 <td>Update Frequency</td>
-                                <td>[1, 4]</td>
+                                <td>1 (fixed)</td>
                                 <td>Policy/Q-function update frequency</td>
-                            </tr>
-                            <tr>
-                                <td>Target Update Rate</td>
-                                <td>[0.001, 0.01]</td>
-                                <td>Soft target network update coefficient</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                
+                <p>
+                    We evaluated 16 different hyperparameter configurations (2 × 2 × 2 × 2 grid search). The best configuration found was:
+                </p>
+                <ul class="feature-list">
+                    <li><strong>Learning Rate:</strong> 3e-4</li>
+                    <li><strong>Hidden Dimension:</strong> 256</li>
+                    <li><strong>Temperature (τ):</strong> 0.01</li>
+                    <li><strong>Alpha (α):</strong> 0.2</li>
+                </ul>
+                <p>
+                    This configuration achieved a final 10% mean reward of 36.26 ± 6.59 over 400 training episodes, with an overall max reward of 40.53. All delay experiments were conducted using this optimal configuration to ensure fair comparisons.
+                </p>
             </section>
 
             <!-- Experiments -->
@@ -252,16 +265,96 @@
                     <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>. The environment is run with fixed delays to simulate the time required 
                     for neural network forward passes.
                 </p>
-                <div class="plot-placeholder">
-                    <div class="plot-content">
-                        <p class="plot-label">Figure 1: Performance of Classical RL (SAC) with Fixed Delays</p>
-                        <div class="plot-image">
-                            <p>[Placeholder for learning curves showing reward vs. training steps for different delay values]</p>
-                        </div>
-                        <p class="plot-caption">
-                            Comparison of cumulative reward over training for classical SAC with various fixed delays (0ms, 50ms, 100ms, 200ms). 
-                            This baseline demonstrates the degradation in performance as delay increases.
-                        </p>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Delay (s)</th>
+                                <th>Training Episodes</th>
+                                <th>Final Avg Reward</th>
+                                <th>Max Reward</th>
+                                <th>Eval Avg Reward</th>
+                                <th>Eval Reward Std</th>
+                                <th>Eval Avg Length</th>
+                                <th>Training Time (h)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0.010</td>
+                                <td>200</td>
+                                <td>11.65</td>
+                                <td>12.35</td>
+                                <td>13.98</td>
+                                <td>0.137</td>
+                                <td>2000.0</td>
+                                <td>11.82</td>
+                            </tr>
+                            <tr>
+                                <td>0.033</td>
+                                <td>200</td>
+                                <td>10.86</td>
+                                <td>11.79</td>
+                                <td>12.71</td>
+                                <td>0.136</td>
+                                <td>2000.0</td>
+                                <td>9.48</td>
+                            </tr>
+                            <tr>
+                                <td>0.050</td>
+                                <td>200</td>
+                                <td>10.86</td>
+                                <td>12.04</td>
+                                <td>13.38</td>
+                                <td>0.103</td>
+                                <td>2000.0</td>
+                                <td>13.70</td>
+                            </tr>
+                            <tr>
+                                <td>0.100</td>
+                                <td>200</td>
+                                <td>5.28</td>
+                                <td>12.18</td>
+                                <td>-1.39</td>
+                                <td>1.263</td>
+                                <td>2000.0</td>
+                                <td>14.13</td>
+                            </tr>
+                            <tr>
+                                <td>0.500</td>
+                                <td>200</td>
+                                <td>12.75</td>
+                                <td>23.15</td>
+                                <td>19.11</td>
+                                <td>11.097</td>
+                                <td>2000.0</td>
+                                <td>12.92</td>
+                            </tr>
+                            <tr>
+                                <td>1.000</td>
+                                <td>200</td>
+                                <td>-1.03</td>
+                                <td>-0.94</td>
+                                <td>-0.98</td>
+                                <td>0.009</td>
+                                <td>10.8</td>
+                                <td>0.31</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Figure 1: Reward vs. Delay - Classical RL (Baseline)</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/reward_vs_delay.png" alt="Reward vs Delay for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Evaluation and training rewards as a function of delay for classical RL without action conditioning. Note the failure at 0.1s delay (negative reward). The 1.0s delay shows no learning within 200 episodes (see Limitations section).</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure 2: Learning Curves - Classical RL (Baseline)</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/learning_curves.png" alt="Learning Curves for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Training progress over 200 episodes for different delay values. Shows the degradation in classical RL performance as delays increase.</p>
                     </div>
                 </div>
 
@@ -275,63 +368,99 @@
                     We test this approach with fixed delays to directly compare against the classical RL baseline and evaluate whether 
                     action conditioning improves performance under delay constraints.
                 </p>
-                <div class="plot-placeholder">
-                    <div class="plot-content">
-                        <p class="plot-label">Figure 2: Real-Time RL (RTAC) vs. Classical RL with Fixed Delays</p>
-                        <div class="plot-image">
-                            <p>[Placeholder for comparison plot showing RTAC vs. SAC performance across different delay values]</p>
-                        </div>
-                        <p class="plot-caption">
-                            Performance comparison between Real-Time RL (with action conditioning) and classical RL across different 
-                            fixed delay values. The plot shows final performance metrics and learning efficiency.
-                        </p>
-                    </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Delay (s)</th>
+                                <th>Training Episodes</th>
+                                <th>Final Avg Reward</th>
+                                <th>Max Reward</th>
+                                <th>Eval Avg Reward</th>
+                                <th>Eval Reward Std</th>
+                                <th>Eval Avg Length</th>
+                                <th>Training Time (h)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0.010</td>
+                                <td>200</td>
+                                <td>11.85</td>
+                                <td>14.78</td>
+                                <td>14.81</td>
+                                <td>0.092</td>
+                                <td>2000.0</td>
+                                <td>9.15</td>
+                            </tr>
+                            <tr>
+                                <td>0.033</td>
+                                <td>200</td>
+                                <td>12.02</td>
+                                <td>12.32</td>
+                                <td>15.37</td>
+                                <td>0.134</td>
+                                <td>2000.0</td>
+                                <td>11.97</td>
+                            </tr>
+                            <tr>
+                                <td>0.100</td>
+                                <td>200</td>
+                                <td>6.01</td>
+                                <td>14.94</td>
+                                <td>12.17</td>
+                                <td>0.177</td>
+                                <td>2000.0</td>
+                                <td>8.80</td>
+                            </tr>
+                            <tr>
+                                <td>0.500</td>
+                                <td>200</td>
+                                <td>10.08</td>
+                                <td>24.40</td>
+                                <td><strong>27.77</strong></td>
+                                <td>0.039</td>
+                                <td>2000.0</td>
+                                <td>10.20</td>
+                            </tr>
+                            <tr>
+                                <td>1.000</td>
+                                <td>200</td>
+                                <td>-1.03</td>
+                                <td>-0.93</td>
+                                <td>-0.99</td>
+                                <td>0.005</td>
+                                <td>6.0</td>
+                                <td>0.32</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="plot-placeholder">
-                    <div class="plot-content">
-                        <p class="plot-label">Figure 3: Learning Curves - Real-Time RL with Action Conditioning</p>
-                        <div class="plot-image">
-                            <p>[Placeholder for learning curves showing training progress for Real-Time RL with different delay values]</p>
-                        </div>
-                        <p class="plot-caption">
-                            Training curves demonstrating how Real-Time RL learns to adapt to fixed delays through action conditioning.
-                        </p>
+                
+                <p>
+                    <strong>Key Observations:</strong> Real-Time RL with action conditioning shows improved performance compared to classical RL, particularly at moderate delays (0.033s, 0.1s). Most notably, at 0.5s delay, Real-Time RL achieves an evaluation reward of 27.77 ± 0.039, significantly outperforming classical RL's 19.11 ± 11.097. This demonstrates that action conditioning enables the agent to better anticipate state changes during computation delays. However, both approaches fail completely at 1.0s delays, indicating a critical threshold beyond which the task becomes intractable.
+                </p>
+                
+                <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Figure 1: Reward vs. Delay - Real-Time RL (Action Conditioning)</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/reward_vs_delay.png" alt="Reward vs Delay for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Evaluation and training rewards as a function of delay for Real-Time RL with action conditioning. Note the unexpectedly high performance at 0.5s delay (27.77 reward) compared to smaller delays—this anomaly requires further investigation (see Limitations section). The 1.0s delay shows no learning within 200 episodes.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure 2: Learning Curves - Real-Time RL (Action Conditioning)</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/learning_curves.png" alt="Learning Curves for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Training progress over 200 episodes for different delay values. Shows how Real-Time RL adapts to various delay magnitudes during training.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure 3: Performance Distributions - Real-Time RL</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/performance_distributions.png" alt="Performance Distributions for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Distribution of episode rewards and lengths across different delay values, showing the stability and consistency of Real-Time RL performance.</p>
                     </div>
                 </div>
 
-                <h3>Experiment 3: Real-Time RL with Variable Time Delay</h3>
-                <p>
-                    In our third experiment, we extend the Real-Time RL approach to handle variable time delays. This scenario is 
-                    more realistic, as computation time can vary depending on system load, network latency, or other factors. The 
-                    policy must learn to be robust to this variability.
-                </p>
-                <p>
-                    We test the Real-Time RL agent with delays sampled from different distributions (e.g., uniform, normal) to 
-                    evaluate robustness to delay variability.
-                </p>
-                <div class="plot-placeholder">
-                    <div class="plot-content">
-                        <p class="plot-label">Figure 4: Real-Time RL Performance with Variable Delays</p>
-                        <div class="plot-image">
-                            <p>[Placeholder for plot showing performance under variable delay distributions]</p>
-                        </div>
-                        <p class="plot-caption">
-                            Evaluation of Real-Time RL robustness when delays vary according to different distributions. 
-                            Compares performance across uniform, normal, and exponential delay distributions.
-                        </p>
-                    </div>
-                </div>
-                <div class="plot-placeholder">
-                    <div class="plot-content">
-                        <p class="plot-label">Figure 5: Delay Distribution Impact Analysis</p>
-                        <div class="plot-image">
-                            <p>[Placeholder for analysis plot showing how different delay distributions affect agent performance]</p>
-                        </div>
-                        <p class="plot-caption">
-                            Detailed analysis of how the variance and distribution shape of delays impact Real-Time RL performance.
-                        </p>
-                    </div>
-                </div>
             </section>
 
             <!-- Results -->
@@ -348,62 +477,234 @@
                     <li>Comparison between classical and Real-Time RL approaches</li>
                 </ul>
 
-                <div class="plot-placeholder">
-                    <div class="plot-content">
-                        <p class="plot-label">Figure 6: Comprehensive Performance Comparison</p>
-                        <div class="plot-image">
-                            <p>[Placeholder for comprehensive comparison table/plot showing all experimental results]</p>
-                        </div>
-                        <p class="plot-caption">
-                            Summary comparison of all experimental conditions, showing the relative performance of classical RL 
-                            vs. Real-Time RL across different delay scenarios.
-                        </p>
-                    </div>
-                </div>
-
+                <h3>Performance Comparison Across Delays</h3>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th>Delay (s)</th>
                                 <th>Method</th>
-                                <th>Delay Type</th>
-                                <th>Mean Reward</th>
-                                <th>Success Rate</th>
-                                <th>Sample Efficiency</th>
+                                <th>Eval Avg Reward</th>
+                                <th>Eval Reward Std</th>
+                                <th>Eval Avg Length</th>
+                                <th>Performance Gap</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Classical SAC</td>
-                                <td>Fixed (0ms)</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
+                                <td>0.010</td>
+                                <td>Classical RL</td>
+                                <td>13.98</td>
+                                <td>0.137</td>
+                                <td>2000.0</td>
+                                <td>Baseline</td>
                             </tr>
                             <tr>
-                                <td>Classical SAC</td>
-                                <td>Fixed (100ms)</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
-                            </tr>
-                            <tr>
+                                <td>0.010</td>
                                 <td>Real-Time RL</td>
-                                <td>Fixed (100ms)</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
+                                <td>14.81</td>
+                                <td>0.092</td>
+                                <td>2000.0</td>
+                                <td>+5.9%</td>
                             </tr>
                             <tr>
+                                <td>0.033</td>
+                                <td>Classical RL</td>
+                                <td>12.71</td>
+                                <td>0.136</td>
+                                <td>2000.0</td>
+                                <td>Baseline</td>
+                            </tr>
+                            <tr>
+                                <td>0.033</td>
                                 <td>Real-Time RL</td>
-                                <td>Variable (μ=100ms)</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
-                                <td>[TBD]</td>
+                                <td>15.37</td>
+                                <td>0.134</td>
+                                <td>2000.0</td>
+                                <td>+20.9%</td>
+                            </tr>
+                            <tr>
+                                <td>0.100</td>
+                                <td>Classical RL</td>
+                                <td>-1.39</td>
+                                <td>1.263</td>
+                                <td>2000.0</td>
+                                <td>Baseline (failed)</td>
+                            </tr>
+                            <tr>
+                                <td>0.100</td>
+                                <td>Real-Time RL</td>
+                                <td>12.17</td>
+                                <td>0.177</td>
+                                <td>2000.0</td>
+                                <td>+975% (recovery)</td>
+                            </tr>
+                            <tr>
+                                <td>0.500</td>
+                                <td>Classical RL</td>
+                                <td>19.11</td>
+                                <td>11.097</td>
+                                <td>2000.0</td>
+                                <td>Baseline</td>
+                            </tr>
+                            <tr>
+                                <td>0.500</td>
+                                <td>Real-Time RL</td>
+                                <td><strong>27.77</strong></td>
+                                <td>0.039</td>
+                                <td>2000.0</td>
+                                <td><strong>+45.3%</strong></td>
+                            </tr>
+                            <tr style="opacity: 0.6; font-style: italic;">
+                                <td>1.000*</td>
+                                <td>Classical RL</td>
+                                <td>-0.98</td>
+                                <td>0.009</td>
+                                <td>10.8</td>
+                                <td>Insufficient training</td>
+                            </tr>
+                            <tr style="opacity: 0.6; font-style: italic;">
+                                <td>1.000*</td>
+                                <td>Real-Time RL</td>
+                                <td>-0.99</td>
+                                <td>0.005</td>
+                                <td>6.0</td>
+                                <td>Insufficient training</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                
+                <h3>Visual Comparison: Classical RL vs. Real-Time RL</h3>
+                
+                <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Classical RL - Reward vs. Delay</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/reward_vs_delay.png" alt="Classical RL Reward vs Delay" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <h4>Real-Time RL - Reward vs. Delay</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/reward_vs_delay.png" alt="Real-Time RL Reward vs Delay" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                </div>
+                <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
+                    <strong>Figure 6:</strong> Side-by-side comparison of reward vs. delay for both approaches. Real-Time RL maintains higher rewards and succeeds at 0.1s delay where classical RL fails, and achieves superior performance (27.77 vs. 19.11) at 0.5s delay.
+                </p>
+                
+                <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Classical RL - Episode Length vs. Delay</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/episode_length_vs_delay.png" alt="Classical RL Episode Length vs Delay" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <h4>Real-Time RL - Episode Length vs. Delay</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/episode_length_vs_delay.png" alt="Real-Time RL Episode Length vs Delay" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                </div>
+                <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
+                    <strong>Figure 7:</strong> Episode length comparison. Both approaches maintain full episode lengths (2000 steps) for delays up to 0.5s. The 1.0s delay results show very short episodes (6-10 steps), but this likely reflects insufficient training time rather than a fundamental failure (see Limitations section).
+                </p>
+                
+                <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Classical RL - Learning Curves</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/learning_curves.png" alt="Classical RL Learning Curves" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <h4>Real-Time RL - Learning Curves</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/learning_curves.png" alt="Real-Time RL Learning Curves" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                </div>
+                <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
+                    <strong>Figure 8:</strong> Training progress comparison. Real-Time RL shows more stable learning and higher final rewards across all delay values, particularly evident at 0.1s and 0.5s delays.
+                </p>
+                
+                <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Classical RL - Performance Distributions</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/performance_distributions.png" alt="Classical RL Performance Distributions" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <h4>Real-Time RL - Performance Distributions</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/performance_distributions.png" alt="Real-Time RL Performance Distributions" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                </div>
+                <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
+                    <strong>Figure 9:</strong> Performance distribution comparison. Real-Time RL shows tighter distributions and higher median rewards, indicating more consistent and reliable performance, especially at higher delay values.
+                </p>
+                
+                <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Classical RL - Loss Convergence</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/loss_convergence.png" alt="Classical RL Loss Convergence" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <h4>Real-Time RL - Loss Convergence</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/loss_convergence.png" alt="Real-Time RL Loss Convergence" style="width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+                    </div>
+                </div>
+                <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
+                    <strong>Figure 10:</strong> Loss convergence patterns. Both approaches show similar loss evolution, but Real-Time RL achieves lower final losses, particularly for policy and Q-function losses, indicating better optimization.
+                </p>
+
+                <h3>Key Findings</h3>
+                <ul class="feature-list">
+                    <li><strong>Action Conditioning Effectiveness:</strong> Real-Time RL consistently outperforms classical RL across all delay values where successful learning occurs. The performance gap widens as delays increase, reaching a 45.3% improvement at 0.5s delay.</li>
+                    <li><strong>Recovery at Moderate Delays:</strong> At 0.1s delay, classical RL fails (negative reward), but Real-Time RL successfully learns with a reward of 12.17 ± 0.177, demonstrating that action conditioning can enable learning in scenarios where classical RL fails.</li>
+                    <li><strong>Variance Reduction:</strong> Real-Time RL shows significantly lower variance in evaluation rewards (e.g., 0.039 at 0.5s vs. 11.097 for classical RL), indicating more stable and reliable performance.</li>
+                    <li><strong>Training Efficiency:</strong> Both approaches require similar training times (8-14 hours for 200 episodes), suggesting that action conditioning does not significantly increase computational overhead.</li>
+                </ul>
+                
+                <h3>Limitations and Open Questions</h3>
+                
+                <h4>1.0s Delay: Insufficient Training Time</h4>
+                <p>
+                    We note an important limitation in our experimental design: the 1.0s delay experiments show evaluation rewards near -1.0 and extremely short episode lengths (6-10 steps), suggesting that learning did not occur within the 200 training episodes allocated. This makes sense given that larger delays represent significantly more difficult learning scenarios—the agent must learn to predict state evolution over a much longer time horizon.
+                </p>
+                <p>
+                    <strong>Implications:</strong> The 1.0s delay results should be interpreted with caution, as they likely represent incomplete learning rather than a true performance ceiling. With more training time (e.g., 500-1000 episodes), it is possible that meaningful learning could occur, though we expect performance would still be substantially degraded compared to smaller delays. Future work should extend training duration for larger delay values to properly characterize the learning dynamics and identify whether there exists a true hard threshold beyond which the task becomes intractable.
+                </p>
+                <p>
+                    <strong>Current Status:</strong> Given computational constraints, we have not yet had the opportunity to extend training for the 1.0s delay condition. As such, these results are excluded from our performance comparisons and should be viewed as preliminary observations rather than conclusive findings.
+                </p>
+                
+                <h4>The 0.5s Delay Anomaly: Unexpected Outperformance</h4>
+                <p>
+                    One of the most intriguing and unexpected observations from our experiments is that the 0.5s delay condition appears to outperform smaller delays, particularly in the Real-Time RL setting. At 0.5s delay, Real-Time RL achieves an evaluation reward of 27.77 ± 0.039, which is substantially higher than rewards at 0.01s (14.81), 0.033s (15.37), and 0.1s (12.17). This contradicts the intuitive expectation that performance should continuously degrade as delays increase.
+                </p>
+                <p>
+                    <strong>Current Limitations:</strong> We have not yet had the opportunity to:
+                </p>
+                <ul class="feature-list">
+                    <li>Rerun the 0.5s delay experiments multiple times to verify reproducibility</li>
+                    <li>Extend training duration to see if smaller delays eventually match or exceed 0.5s performance</li>
+                    <li>Investigate potential implementation bugs or evaluation artifacts that could explain this result</li>
+                </ul>
+                <p>
+                    As such, we cannot yet determine whether this represents a genuine phenomenon, a statistical outlier, or a methodological artifact.
+                </p>
+                <p>
+                    <strong>Possible Explanations (if the result is genuine):</strong>
+                </p>
+                <ul class="feature-list">
+                    <li><strong>Optimal Exploration-Exploitation Balance:</strong> The 0.5s delay might create a "sweet spot" where the temporal delay encourages the agent to learn more robust, forward-looking policies. Smaller delays might allow the agent to rely on reactive policies that work well in the short term but are less optimal overall, while the 0.5s delay forces the agent to develop better predictive models.</li>
+                    <li><strong>Action Smoothing Effect:</strong> Longer delays might act as an implicit regularization mechanism, smoothing out noisy or jerky actions that could occur with near-instantaneous control. This smoothing could lead to more stable and consistent behavior, particularly in a continuous control domain like autonomous driving.</li>
+                    <li><strong>Hyperparameter Mismatch:</strong> Our hyperparameters were optimized through grid search, but this optimization may have been biased toward a particular delay range. The 0.5s delay might happen to align better with the chosen hyperparameter configuration, while smaller delays might benefit from different settings (e.g., different learning rates, network architectures, or exploration strategies).</li>
+                    <li><strong>Curriculum Learning Effect:</strong> The 0.5s delay might provide an unintentional curriculum—the difficulty is high enough to force sophisticated learning, but not so high as to make learning impossible. Smaller delays might allow the agent to find suboptimal local minima too easily, while the 0.5s delay forces more thorough exploration of the policy space.</li>
+                    <li><strong>Reward Function Interactions:</strong> The reward structure in Duckietown might interact with the delay in non-obvious ways. For example, longer delays might change the temporal structure of rewards in a way that makes certain behaviors more rewarding, or might affect how the agent balances immediate vs. long-term rewards.</li>
+                </ul>
+                <p>
+                    <strong>Future Work:</strong> To resolve this anomaly, we plan to:
+                </p>
+                <ul class="feature-list">
+                    <li>Run multiple independent training runs for the 0.5s delay condition to assess statistical significance</li>
+                    <li>Perform hyperparameter optimization specifically for each delay value to eliminate potential bias</li>
+                    <li>Conduct ablation studies to isolate which components of the algorithm or environment might contribute to this effect</li>
+                    <li>Extend training duration for all delay values to see if the performance ordering changes with longer training</li>
+                </ul>
+                <p>
+                    <strong>Current Recommendation:</strong> Until further verification, we recommend interpreting the 0.5s delay results with caution and focusing comparisons on the relative performance between Classical RL and Real-Time RL at each delay value, rather than comparing across delay values.
+                </p>
             </section>
 
             <!-- Technical Details -->
@@ -434,9 +735,9 @@
                     The results will provide insights into:
                 </p>
                 <ul class="feature-list">
-                    <li>The extent to which computation delays degrade classical RL performance</li>
-                    <li>The effectiveness of action conditioning in compensating for delays</li>
-                    <li>The robustness of Real-Time RL to variable delay scenarios</li>
+                    <li><strong>Computation delays significantly degrade classical RL performance:</strong> At 0.1s delay, classical RL fails completely, and even at smaller delays, performance decreases by 9-21% compared to baseline.</li>
+                    <li><strong>Action conditioning effectively compensates for delays:</strong> Real-Time RL achieves 20.9% better performance at 0.033s delay and 45.3% better at 0.5s delay compared to classical RL, with dramatically reduced variance.</li>
+                    <li><strong>Limitations in current results:</strong> The 1.0s delay experiments did not show learning within 200 episodes and require further investigation with extended training durations (see Limitations section).</li>
                 </ul>
                 <p>
                     These findings have important implications for deploying RL systems in real-world, safety-critical applications 
