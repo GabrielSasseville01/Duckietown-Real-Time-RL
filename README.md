@@ -553,7 +553,7 @@ If you use this code in your research, please cite:
 @misc{duckietown-realtime-rl,
   title={Duckietown Real-Time Reinforcement Learning},
   author={Gabriel Sasseville, Guillaume Gagné-Labelle, Nicolas Bosteels},
-  year={2024},
+  year={2025},
   url={https://github.com/GabrielSasseville01/Duckietown-Real-Time-RL}
 }
 ```
