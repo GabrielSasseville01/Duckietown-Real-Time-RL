@@ -111,24 +111,21 @@ Make sure the Duckietown Matrix is running (see [Quick Start](#quick-start) sect
 dts matrix run --image duckietown/dt-duckiematrix:ente-amd64 --standalone --map ./dt-duckiematrix/assets/embedded_maps/loop --mode gym --no-pull
 ```
 
-### Step 2: Train the SAC Agent (300 Episodes)
+### Step 2: Train the SAC Agent (200 Episodes)
 
 In a new terminal (with virtual environment activated), navigate to the gym-duckiematrix directory:
 
 ```bash
 cd gym-duckiematrix
 python src/sac_agent.py \
-    --num_episodes 300 \
-    --gym_mode \
-    --step_duration 0.1 \
+    --num_episodes 200 \
     --checkpoint_dir checkpoints/simple_example \
     --metrics_dir training_logs/simple_example \
     --save_freq 100
 ```
 
 **What this does:**
-- Trains for 300 episodes in gym mode (faster simulation)
-- Uses a step duration of 0.1 seconds
+- Trains for 200 episodes in real-time mode
 - Saves checkpoints every 100 episodes
 - Saves checkpoints to `checkpoints/simple_example/`
 - Saves training metrics and plots to `training_logs/simple_example/`
@@ -147,8 +144,6 @@ python src/sac_inference.py \
     --policy_checkpoint checkpoints/simple_example/sac_policy_final.pth \
     --num_episodes 20 \
     --max_steps 2000 \
-    --gym_mode \
-    --step_duration 0.1 \
     --save_metrics \
     --no_render
 ```
@@ -156,7 +151,7 @@ python src/sac_inference.py \
 **What this does:**
 - Loads the final trained policy
 - Runs 20 evaluation episodes
-- Uses gym mode with 0.1s step duration
+- Uses real-time mode
 - Saves evaluation metrics to JSON
 - Disables rendering for faster evaluation
 
@@ -185,18 +180,19 @@ python src/plot_metrics.py \
 ### Summary
 
 After completing this example, you will have:
-1. ✅ A trained SAC agent (300 episodes)
+1. ✅ A trained SAC agent (200 episodes)
 2. ✅ Model checkpoints saved at intervals
 3. ✅ Training metrics and plots
 4. ✅ Evaluation results with performance statistics
 
 **Expected results:**
-- Training typically takes 6-10 hours for 300 episodes (depending on hardware)
-- Average evaluation reward should improve over training (typical range: 10-20)
+- Training typically takes 1-4 hours for 200 episodes (depending on hardware)
+- Average evaluation reward should improve over training (typical range: 0-20)
 - Episodes should approach maximum length (2000 steps) as the agent learns
 
 **Next steps:**
 - Experiment with different hyperparameters (see [Custom Hyperparameters](#custom-hyperparameters))
+- Try training in gym-mode with a fixed delay: add --gym_mode and --step_duration 0.5
 - Try training with action conditioning: add `--condition_on_prev_action` flag
 - Run longer training: increase `--num_episodes` to 500 or 1000
 - Explore delay experiments: see [Delay Experiments](#delay-experiments) section
