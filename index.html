@@ -627,7 +627,7 @@
                     </div>
                 </div>
                 <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
-                    <strong>Figure 8:</strong> Training progress comparison. Real-Time RL shows more stable learning and higher final rewards across all delay values, particularly evident at 0.1s and 0.5s delays.
+                    <strong>Figure 8:</strong> Training progress comparison. Real-Time RL shows more stable learning and higher final rewards across all delay values, particularly evident at 0.1s and 0.5s delays. Note: The 0.05s delay condition in Real-Time RL is missing training metrics data (see Limitations section), so only evaluation metrics are available for this condition.
                 </p>
                 
                 <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
@@ -655,7 +655,7 @@
                     </div>
                 </div>
                 <p class="plot-caption" style="text-align: center; margin-top: 1rem;">
-                    <strong>Figure 10:</strong> Loss convergence patterns. Both approaches show similar loss evolution, but Real-Time RL achieves lower final losses, particularly for policy and Q-function losses, indicating better optimization.
+                    <strong>Figure 10:</strong> Loss convergence patterns. Both approaches show similar loss evolution, but Real-Time RL achieves lower final losses, particularly for policy and Q-function losses, indicating better optimization. Note: Loss convergence data for the 0.05s delay in Real-Time RL is unavailable due to missing training metrics (see Limitations section).
                 </p>
 
                 <h3>Experiment 3: Variable Delay Robustness</h3>
@@ -762,6 +762,14 @@
                     <strong>Current Recommendation:</strong> Until further verification, we recommend interpreting the 0.5s delay results with caution and focusing comparisons on the relative performance between Classical RL and Real-Time RL at each delay value, rather than comparing across delay values.
                 </p>
 
+                <h4>Missing Training Metrics for 0.05s Delay (Real-Time RL Experiment)</h4>
+                <p>
+                    During the Real-Time RL experiment with action conditioning, the training metrics file (<code>training_metrics.json</code>) for the 0.05s delay condition was lost or not properly saved. As a result, while evaluation metrics are available for this condition (showing an evaluation reward of 15.45 ± 0.187), we lack detailed training history including episode-by-episode rewards, losses, and learning curves for this specific delay value.
+                </p>
+                <p>
+                    <strong>Impact:</strong> This missing data means that plots and analysis that depend on training metrics (such as detailed learning curves, loss convergence patterns, and training time analysis) show "N/A" or incomplete data for the 0.05s delay in the Real-Time RL experiment. The evaluation results remain valid and are included in our comparisons, but training progression data cannot be analyzed for this condition. The checkpoints for this experiment were successfully saved, confirming that training completed successfully—only the metrics logging file was affected.
+                </p>
+                
                 <h4>Experiment 3: Limited Runs</h4>
                 <p>
                     Variable-delay experiments expand the number of conditions quickly, since each combination of mean delay and delay regime requires a full training run. Due to limited computational time, we ran a single seed per configuration. This makes the results sensitive to training stochasticity and can plausibly explain some irregularities, such as a fixed-delay run underperforming a jittered counterpart at the same mean. Future work should repeat a subset of configurations across multiple seeds to provide confidence intervals on robustness under variable delay.
