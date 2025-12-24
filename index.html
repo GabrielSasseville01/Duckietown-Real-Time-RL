@@ -281,10 +281,16 @@
 
                 <h3>Experiment 3: Real-Time RL with Variable Time Delay</h3>
                 <p>
-                    Fixed-delay experiments provide a clean way to measure how performance changes as the average computation delay increases, but real systems rarely exhibit a single constant delay. In practice, inference time fluctuates due to background load, scheduling jitter, and occasional stalls. This third experiment focuses on robustness under variable delay by sampling a new delay value at each environment step.
+                    Fixed-delay experiments provide a clean way to measure how performance changes as the average computation delay increases, but real systems rarely exhibit a single constant delay. In practice, inference time fluctuates due to background load, scheduling jitter, and occasional stalls. The time to compute an action can vary significantly even in near-perfect conditions (no CPU overuse, no overheating, minimal network lag, etc.). The following plot demonstrates this variability by showing the distribution of forward pass computation times over 100,000 samples from our SAC agent.
                 </p>
+                
+                <div class="plot-container" style="margin: 2rem 0;">
+                    <img src="gym-duckiematrix/sac_sampling_time_distribution.png" alt="SAC Action Sampling Time Distribution" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                    <p class="plot-caption" style="margin-top: 0.5rem;">Distribution of SAC action sampling times over 100,000 forward passes, measured in milliseconds. Even under controlled conditions, computation times exhibit variability, with mean and median values of 0.42 ms and 0.37 ms respectively. This natural variability motivates Experiment 3's focus on robustness to delay variations.</p>
+                </div>
+                
                 <p>
-                    We evaluated three mean delays (0.05s, 0.1s, 0.2s). For each mean we trained an action-conditioned SAC agent under five delay configurations: fixed delay, uniform jitter, truncated normal jitter, a heavy-tailed lognormal distribution, and a bursty mixture with rare spikes. The goal was to cover a diverse range of delay distributions from jitter to tail-heavy scenarios under limited compute.
+                    This third experiment focuses on robustness under variable delay by sampling a new delay value at each environment step. We evaluated three mean delays (0.05s, 0.1s, 0.2s). For each mean we trained an action-conditioned SAC agent under five delay configurations: fixed delay, uniform jitter, truncated normal jitter, a heavy-tailed lognormal distribution, and a bursty mixture with rare spikes. The goal was to cover a diverse range of delay distributions from jitter to tail-heavy scenarios under limited compute.
                 </p>
                 <p>
                     Even though the policy is not explicitly told the delay value, it experiences the consequences of delay variability through state transitions. Over training it can learn a strategy that is robust in expectation over that distribution: smoother action changes, more conservative steering and throttle, and behaviors that keep the vehicle close to the lane center so occasional long delays are less likely to cause irrecoverable drift. With action conditioning, the previous action also provides context that can help the model learn under this new dynamic.
