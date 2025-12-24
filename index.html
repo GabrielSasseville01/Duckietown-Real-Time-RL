@@ -461,6 +461,17 @@
                     </div>
                 </div>
 
+                <h3>Experiment 3: Real-Time RL with Variable Time Delay</h3>
+                <p>
+                    Fixed-delay experiments provide a clean way to measure how performance changes as the average computation delay increases, but real systems rarely exhibit a single constant delay. In practice, inference time fluctuates due to background load, scheduling jitter, and occasional stalls. This third experiment focuses on robustness under variable delay by sampling a new delay value at each environment step.
+                </p>
+                <p>
+                    We evaluated three mean delays (0.05s, 0.1s, 0.2s). For each mean we trained an action-conditioned SAC agent under five delay configurations: fixed delay, uniform jitter, truncated normal jitter, a heavy-tailed lognormal distribution, and a bursty mixture with rare spikes. The goal was not to cover a diverse range of delay distributions from jitter to tail-heavy scenarios under limited compute.
+                </p>
+                <p>
+                    Even though the policy is not explicitly told the delay value, it experiences the consequences of delay variability through state transitions. Over training it can learn a strategy that is robust in expectation over that distribution: smoother action changes, more conservative steering and throttle, and behaviors that keep the vehicle close to the lane center so occasional long delays are less likely to cause irrecoverable drift. With action conditioning, the previous action also provides context that can help the model learn under this new dynamic.
+                </p>
+
             </section>
 
             <!-- Results -->
@@ -647,6 +658,26 @@
                     <strong>Figure 10:</strong> Loss convergence patterns. Both approaches show similar loss evolution, but Real-Time RL achieves lower final losses, particularly for policy and Q-function losses, indicating better optimization.
                 </p>
 
+                <h3>Experiment 3: Variable Delay Robustness</h3>
+                <p>
+                    Experiment 3 isolates two effects that are often conflated: increasing the mean delay, and the additional penalty introduced by variability and tail events. Across means, performance is expected to degrade as delays become larger. For the same mean, small bounded jitter should be less harmful than heavy tails, since rare long delays can produce very stale actions and abrupt lane departure.
+                </p>
+                <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
+                    <div>
+                        <h4>Figure 11: Performance vs Mean Delay (lines = delay regime)</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiment_3_variable_delay/analysis/exp3_reward_vs_mean_by_regime.png" alt="Experiment 3: performance vs mean delay" style="width: 100%; max-width: 900px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Evaluation reward across mean delays, with one curve per delay regime. Each point corresponds to a trained policy evaluated under the same delay regime it was trained on.</p>
+                    </div>
+                    <div>
+                        <h4>Figure 12: Absolute Difference vs Fixed Baseline (lines = delay regime)</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiment_3_variable_delay/analysis/exp3_abs_delta_vs_fixed_across_means.png" alt="Experiment 3: absolute delta vs fixed baseline" style="width: 100%; max-width: 900px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Absolute change in evaluation reward relative to the fixed-delay baseline at the same mean. Values below zero indicate that variability hurts performance; values above zero indicate that the variable-delay regime performed better than fixed at that mean.</p>
+                    </div>
+                </div>
+                <p>
+                    The overall pattern matches expectations: increasing mean delay tends to reduce performance, and heavy-tailed regimes collapse as delay increases. For the same mean delay, bounded jitter is generally less harmful than heavy tails. We also observed that, at a 0.2s mean delay, some jitter regimes outperformed the fixed-delay run. Given that each configuration was trained once, this should be interpreted cautiously; it is also plausible that stochastic delay can regularize learning. A minimal follow-up would repeat the fixed and jitter conditions with multiple seeds to quantify how often this effect appears.
+                </p>
+
                 <h3>Key Findings</h3>
                 <ul class="feature-list">
                     <li><strong>Action Conditioning Effectiveness:</strong> Real-Time RL consistently outperforms classical RL across all delay values where successful learning occurs. The performance gap widens as delays increase, reaching a 45.3% improvement at 0.5s delay.</li>
@@ -704,6 +735,11 @@
                 </ul>
                 <p>
                     <strong>Current Recommendation:</strong> Until further verification, we recommend interpreting the 0.5s delay results with caution and focusing comparisons on the relative performance between Classical RL and Real-Time RL at each delay value, rather than comparing across delay values.
+                </p>
+
+                <h4>Experiment 3: Limited Runs</h4>
+                <p>
+                    Variable-delay experiments expand the number of conditions quickly, since each combination of mean delay and delay regime requires a full training run. Due to limited computational time, we ran a single seed per configuration. This makes the results sensitive to training stochasticity and can plausibly explain some irregularities, such as a fixed-delay run underperforming a jittered counterpart at the same mean. Future work should repeat a subset of configurations across multiple seeds to provide confidence intervals on robustness under variable delay.
                 </p>
             </section>
 
