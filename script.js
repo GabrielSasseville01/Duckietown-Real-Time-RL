@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add fade-in animation on scroll
     const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+        threshold: 0.01, // Lower threshold to ensure sections are detected
+        rootMargin: '0px 0px 0px 0px' // Removed negative margin that might prevent detection
     };
 
     const observer = new IntersectionObserver(function(entries) {

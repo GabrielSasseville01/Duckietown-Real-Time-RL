@@ -346,15 +346,33 @@
                 
                 <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
                     <div>
-                        <h4>Figure 1: Reward vs. Delay - Classical RL (Baseline)</h4>
+                        <h4>Figure E1.1: Reward vs. Delay - Classical RL (Baseline)</h4>
                         <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/reward_vs_delay.png" alt="Reward vs Delay for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
                         <p class="plot-caption">Evaluation and training rewards as a function of delay for classical RL without action conditioning. Note the failure at 0.1s delay (negative reward). The 1.0s delay shows no learning within 200 episodes (see Limitations section).</p>
                     </div>
                     
                     <div>
-                        <h4>Figure 2: Learning Curves - Classical RL (Baseline)</h4>
+                        <h4>Figure E1.2: Learning Curves - Classical RL (Baseline)</h4>
                         <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/learning_curves.png" alt="Learning Curves for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
                         <p class="plot-caption">Training progress over 200 episodes for different delay values. Shows the degradation in classical RL performance as delays increase.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure E1.3: Episode Length vs. Delay - Classical RL</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/episode_length_vs_delay.png" alt="Episode Length vs Delay for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Average episode length (in steps) as a function of delay. Classical RL maintains full episode lengths (2000 steps) for smaller delays but fails at 0.1s and 1.0s delays.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure E1.4: Performance Distributions - Classical RL</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/performance_distributions.png" alt="Performance Distributions for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Distribution of episode rewards and lengths across different delay values. Shows the variance and consistency (or lack thereof) in classical RL performance.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure E1.5: Loss Convergence - Classical RL</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_no_action/analysis/loss_convergence.png" alt="Loss Convergence for Classical RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Convergence patterns for Q1, Q2, Policy, and Alpha losses during training. Shows how loss evolution varies with different delay values.</p>
                     </div>
                 </div>
 
@@ -404,6 +422,16 @@
                                 <td>2000.0</td>
                                 <td>11.97</td>
                             </tr>
+                            <tr style="opacity: 0.8; font-style: italic;">
+                                <td>0.050*</td>
+                                <td>200**</td>
+                                <td>N/A</td>
+                                <td>N/A</td>
+                                <td>15.45</td>
+                                <td>0.187</td>
+                                <td>2000.0</td>
+                                <td>N/A</td>
+                            </tr>
                             <tr>
                                 <td>0.100</td>
                                 <td>200</td>
@@ -438,27 +466,43 @@
                     </table>
                 </div>
                 
+                <p style="font-size: 0.9em; color: #666; margin-top: 0.5rem;">
+                    <strong>Note:</strong> * 0.050s delay: Training metrics file was lost (see Limitations section). Evaluation metrics are available. ** Episode count inferred from checkpoints.
+                </p>
+                
                 <p>
                     <strong>Key Observations:</strong> Real-Time RL with action conditioning shows improved performance compared to classical RL, particularly at moderate delays (0.033s, 0.1s). Most notably, at 0.5s delay, Real-Time RL achieves an evaluation reward of 27.77 ± 0.039, significantly outperforming classical RL's 19.11 ± 11.097. This demonstrates that action conditioning enables the agent to better anticipate state changes during computation delays. However, both approaches fail completely at 1.0s delays, indicating a critical threshold beyond which the task becomes intractable.
                 </p>
                 
                 <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
                     <div>
-                        <h4>Figure 1: Reward vs. Delay - Real-Time RL (Action Conditioning)</h4>
+                        <h4>Figure E2.1: Reward vs. Delay - Real-Time RL (Action Conditioning)</h4>
                         <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/reward_vs_delay.png" alt="Reward vs Delay for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
-                        <p class="plot-caption">Evaluation and training rewards as a function of delay for Real-Time RL with action conditioning. Note the unexpectedly high performance at 0.5s delay (27.77 reward) compared to smaller delays—this anomaly requires further investigation (see Limitations section). The 1.0s delay shows no learning within 200 episodes.</p>
+                        <p class="plot-caption">Evaluation and training rewards as a function of delay for Real-Time RL with action conditioning. Note the unexpectedly high performance at 0.5s delay (27.77 reward) compared to smaller delays—this anomaly requires further investigation (see Limitations section). The 1.0s delay shows no learning within 200 episodes. Note: Training metrics for 0.05s delay are missing (see Limitations section).</p>
                     </div>
                     
                     <div>
-                        <h4>Figure 2: Learning Curves - Real-Time RL (Action Conditioning)</h4>
+                        <h4>Figure E2.2: Learning Curves - Real-Time RL (Action Conditioning)</h4>
                         <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/learning_curves.png" alt="Learning Curves for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
-                        <p class="plot-caption">Training progress over 200 episodes for different delay values. Shows how Real-Time RL adapts to various delay magnitudes during training.</p>
+                        <p class="plot-caption">Training progress over 200 episodes for different delay values. Shows how Real-Time RL adapts to various delay magnitudes during training. Note: Training curve for 0.05s delay is unavailable due to missing training metrics.</p>
                     </div>
                     
                     <div>
-                        <h4>Figure 3: Performance Distributions - Real-Time RL</h4>
+                        <h4>Figure E2.3: Episode Length vs. Delay - Real-Time RL</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/episode_length_vs_delay.png" alt="Episode Length vs Delay for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Average episode length (in steps) as a function of delay. Real-Time RL maintains full episode lengths (2000 steps) across all delays where learning occurs, demonstrating better robustness than classical RL.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure E2.4: Performance Distributions - Real-Time RL</h4>
                         <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/performance_distributions.png" alt="Performance Distributions for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
-                        <p class="plot-caption">Distribution of episode rewards and lengths across different delay values, showing the stability and consistency of Real-Time RL performance.</p>
+                        <p class="plot-caption">Distribution of episode rewards and lengths across different delay values, showing the stability and consistency of Real-Time RL performance. Notice the tighter distributions and higher median rewards compared to classical RL.</p>
+                    </div>
+                    
+                    <div>
+                        <h4>Figure E2.5: Loss Convergence - Real-Time RL</h4>
+                        <img src="gym-duckiematrix/delay_experiments/experiments_20251218_130600/analysis/loss_convergence.png" alt="Loss Convergence for Real-Time RL" style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+                        <p class="plot-caption">Convergence patterns for Q1, Q2, Policy, and Alpha losses during training. Shows how loss evolution varies with different delay values. Note: Loss data for 0.05s delay is unavailable due to missing training metrics.</p>
                     </div>
                 </div>
 
@@ -665,37 +709,25 @@
 
                 <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
                     <div>
-                        <h4>Figure 11: Performance vs Mean Delay (lines = delay regime)</h4>
-
+                        <h4>Figure E3.1: Performance vs Mean Delay (lines = delay regime)</h4>
                         <img
-                            class="plot-img"
                             src="gym-duckiematrix/delay_experiments/experiment_3_variable_delay/analysis/exp3_reward_vs_mean_by_regime.png"
                             alt="Experiment 3: performance vs mean delay"
+                            style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;"
                             loading="lazy"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                         >
-                        <div class="plot-img-fallback" style="display:none;">
-                            Missing image: exp3_reward_vs_mean_by_regime.png (check server root + path/case)
-                        </div>
-
-                        <p class="plot-caption">Evaluation reward across mean delays, with one curve per delay regime. Each point corresponds to a trained policy evaluated under the same delay regime it was trained on.</p>
+                        <p class="plot-caption">Evaluation reward across mean delays, with one curve per delay regime. Each point corresponds to a trained policy evaluated under the same delay regime it was trained on. Shows how different delay distributions (fixed, uniform jitter, truncated normal, lognormal, bursty) affect performance at various mean delays.</p>
                     </div>
 
                     <div>
-                        <h4>Figure 12: Absolute Difference vs Fixed Baseline (lines = delay regime)</h4>
-
+                        <h4>Figure E3.2: Absolute Difference vs Fixed Baseline (lines = delay regime)</h4>
                         <img
-                            class="plot-img"
                             src="gym-duckiematrix/delay_experiments/experiment_3_variable_delay/analysis/exp3_abs_delta_vs_fixed_across_means.png"
                             alt="Experiment 3: absolute delta vs fixed baseline"
+                            style="width: 100%; max-width: 800px; border: 1px solid #ddd; border-radius: 8px;"
                             loading="lazy"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                         >
-                        <div class="plot-img-fallback" style="display:none;">
-                            Missing image: exp3_abs_delta_vs_fixed_across_means.png (check server root + path/case)
-                        </div>
-
-                        <p class="plot-caption">Absolute change in evaluation reward relative to the fixed-delay baseline at the same mean. Values below zero indicate that variability hurts performance; values above zero indicate that the variable-delay regime performed better than fixed at that mean.</p>
+                        <p class="plot-caption">Absolute change in evaluation reward relative to the fixed-delay baseline at the same mean. Values below zero indicate that variability hurts performance; values above zero indicate that the variable-delay regime performed better than fixed at that mean. This helps isolate the impact of delay variability from the impact of increasing mean delay.</p>
                     </div>
                 </div>
 
