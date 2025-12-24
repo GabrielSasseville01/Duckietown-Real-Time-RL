@@ -186,7 +186,7 @@ After completing this example, you will have:
 4. ✅ Evaluation results with performance statistics
 
 **Expected results:**
-- Training typically takes 1-4 hours for 200 episodes (depending on hardware)
+- Training typically takes 30 minutes - 2 hours for 200 episodes (depending on hardware)
 - Average evaluation reward should improve over training (typical range: 0-20)
 - Episodes should approach maximum length (2000 steps) as the agent learns
 
