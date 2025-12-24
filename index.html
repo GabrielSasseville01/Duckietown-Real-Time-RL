@@ -260,7 +260,7 @@
                     instantaneous action computation) perform when deployed in scenarios with non-negligible computation delays.
                 </p>
                 <p>
-                    We use standard Soft Actor-Critic (SAC) with the policy conditioned only on the current state: 
+                    We use standard SAC with the policy conditioned only on the current state: 
                     <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>. The environment is run with fixed delays (0.01s, 0.033s, 0.05s, 0.1s, 0.5s, and 1.0s) 
                     to simulate the time required for neural network forward passes. This experiment tests six delay conditions, 
                     with each agent trained for 200 episodes.
