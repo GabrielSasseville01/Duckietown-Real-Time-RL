@@ -261,10 +261,51 @@
                 </p>
                 <p>
                     We use standard Soft Actor-Critic (SAC) with the policy conditioned only on the current state: 
-                    <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>. The environment is run with fixed delays to simulate the time required 
-                    for neural network forward passes.
+                    <em>π(a<sub>t</sub> | s<sub>t</sub>)</em>. The environment is run with fixed delays (0.01s, 0.033s, 0.05s, 0.1s, 0.5s, and 1.0s) 
+                    to simulate the time required for neural network forward passes. This experiment tests six delay conditions, 
+                    with each agent trained for 200 episodes.
                 </p>
 
+                <h3>Experiment 2: Real-Time RL with Fixed Delay (Action Conditioning)</h3>
+                <p>
+                    Our second experiment implements Real-Time RL by conditioning the policy on both the previous state and previous 
+                    action: <em>π(a<sub>t</sub> | s<sub>t-1</sub>, a<sub>t-1</sub>)</em>. This allows the policy to learn to predict 
+                    state evolution and compensate for the delay. The observation space is extended to include the previous action, 
+                    enabling the agent to explicitly reason about how its actions will affect future states.
+                </p>
+                <p>
+                    We test this approach with the same fixed delays as Experiment 1 (0.01s, 0.033s, 0.05s, 0.1s, 0.5s, and 1.0s) 
+                    to directly compare against the classical RL baseline and evaluate whether action conditioning improves performance 
+                    under delay constraints. Each agent is trained for 200 episodes, matching the training duration of Experiment 1.
+                </p>
+
+                <h3>Experiment 3: Real-Time RL with Variable Time Delay</h3>
+                <p>
+                    Fixed-delay experiments provide a clean way to measure how performance changes as the average computation delay increases, but real systems rarely exhibit a single constant delay. In practice, inference time fluctuates due to background load, scheduling jitter, and occasional stalls. This third experiment focuses on robustness under variable delay by sampling a new delay value at each environment step.
+                </p>
+                <p>
+                    We evaluated three mean delays (0.05s, 0.1s, 0.2s). For each mean we trained an action-conditioned SAC agent under five delay configurations: fixed delay, uniform jitter, truncated normal jitter, a heavy-tailed lognormal distribution, and a bursty mixture with rare spikes. The goal was to cover a diverse range of delay distributions from jitter to tail-heavy scenarios under limited compute.
+                </p>
+                <p>
+                    Even though the policy is not explicitly told the delay value, it experiences the consequences of delay variability through state transitions. Over training it can learn a strategy that is robust in expectation over that distribution: smoother action changes, more conservative steering and throttle, and behaviors that keep the vehicle close to the lane center so occasional long delays are less likely to cause irrecoverable drift. With action conditioning, the previous action also provides context that can help the model learn under this new dynamic.
+                </p>
+            </section>
+
+            <!-- Results -->
+            <section id="results" class="content-section">
+                <h2>Results and Analysis</h2>
+                <p>
+                    This section presents the detailed results from our experiments, including quantitative metrics, visualizations, 
+                    and comparative analysis. We first present individual experiment results, followed by side-by-side comparisons 
+                    between classical RL and Real-Time RL approaches.
+                </p>
+
+                <h3>Experiment 1: Classical RL Baseline Results</h3>
+                <p>
+                    The following table and figures present the results from the classical RL baseline experiment across different 
+                    delay values.
+                </p>
+                
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -376,15 +417,10 @@
                     </div>
                 </div>
 
-                <h3>Experiment 2: Real-Time RL with Fixed Delay (Action Conditioning)</h3>
+                <h3>Experiment 2: Real-Time RL with Action Conditioning Results</h3>
                 <p>
-                    Our second experiment implements Real-Time RL by conditioning the policy on both the previous state and previous 
-                    action: <em>π(a<sub>t</sub> | s<sub>t-1</sub>, a<sub>t-1</sub>)</em>. This allows the policy to learn to predict 
-                    state evolution and compensate for the delay.
-                </p>
-                <p>
-                    We test this approach with fixed delays to directly compare against the classical RL baseline and evaluate whether 
-                    action conditioning improves performance under delay constraints.
+                    The following table and figures present the results from the Real-Time RL experiment with action conditioning. 
+                    This experiment uses the same delay values as Experiment 1 to enable direct comparison.
                 </p>
 
                 <div class="table-container">
@@ -470,10 +506,6 @@
                     <strong>Note:</strong> * 0.050s delay: Training metrics file was lost (see Limitations section). Evaluation metrics are available. ** Episode count inferred from checkpoints.
                 </p>
                 
-                <p>
-                    <strong>Key Observations:</strong> Real-Time RL with action conditioning shows improved performance compared to classical RL, particularly at moderate delays (0.033s, 0.1s). Most notably, at 0.5s delay, Real-Time RL achieves an evaluation reward of 27.77 ± 0.039, significantly outperforming classical RL's 19.11 ± 11.097. This demonstrates that action conditioning enables the agent to better anticipate state changes during computation delays. However, both approaches fail completely at 1.0s delays, indicating a critical threshold beyond which the task becomes intractable.
-                </p>
-                
                 <div class="plot-container" style="display: flex; flex-direction: column; gap: 2rem; margin: 2rem 0;">
                     <div>
                         <h4>Figure E2.1: Reward vs. Delay - Real-Time RL (Action Conditioning)</h4>
@@ -506,33 +538,11 @@
                     </div>
                 </div>
 
-                <h3>Experiment 3: Real-Time RL with Variable Time Delay</h3>
-                <p>
-                    Fixed-delay experiments provide a clean way to measure how performance changes as the average computation delay increases, but real systems rarely exhibit a single constant delay. In practice, inference time fluctuates due to background load, scheduling jitter, and occasional stalls. This third experiment focuses on robustness under variable delay by sampling a new delay value at each environment step.
-                </p>
-                <p>
-                    We evaluated three mean delays (0.05s, 0.1s, 0.2s). For each mean we trained an action-conditioned SAC agent under five delay configurations: fixed delay, uniform jitter, truncated normal jitter, a heavy-tailed lognormal distribution, and a bursty mixture with rare spikes. The goal was to cover a diverse range of delay distributions from jitter to tail-heavy scenarios under limited compute.
-                </p>
-                <p>
-                    Even though the policy is not explicitly told the delay value, it experiences the consequences of delay variability through state transitions. Over training it can learn a strategy that is robust in expectation over that distribution: smoother action changes, more conservative steering and throttle, and behaviors that keep the vehicle close to the lane center so occasional long delays are less likely to cause irrecoverable drift. With action conditioning, the previous action also provides context that can help the model learn under this new dynamic.
-                </p>
-            </section>
-
-            <!-- Results -->
-            <section id="results" class="content-section">
-                <h2>Results and Analysis</h2>
-                <p>
-                    The results from our experiments will be presented here, including quantitative comparisons and qualitative 
-                    analysis of agent behavior. Key metrics include:
-                </p>
-                <ul class="feature-list">
-                    <li>Cumulative reward and task completion rates</li>
-                    <li>Learning efficiency and sample complexity</li>
-                    <li>Robustness to delay variations</li>
-                    <li>Comparison between classical and Real-Time RL approaches</li>
-                </ul>
-
                 <h3>Performance Comparison Across Delays</h3>
+                <p>
+                    The following table provides a direct comparison between classical RL and Real-Time RL approaches across all 
+                    delay values, highlighting the performance improvements achieved through action conditioning.
+                </p>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -633,7 +643,11 @@
                     <strong>Note:</strong> * 1.000s delay: Both methods failed to learn within 200 training episodes (see Limitations section).
                 </p>
                 
-                <h3>Visual Comparison: Classical RL vs. Real-Time RL</h3>
+                <h3>Side-by-Side Visual Comparison: Classical RL vs. Real-Time RL</h3>
+                <p>
+                    The following side-by-side visualizations allow for direct comparison of performance metrics between classical RL 
+                    and Real-Time RL approaches across different delay values.
+                </p>
                 
                 <div class="plot-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
                     <div>
