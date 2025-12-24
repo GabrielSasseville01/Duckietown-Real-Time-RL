@@ -44,28 +44,36 @@ def load_all_experiments(experiment_dir: Path) -> Dict:
                     delay = exp["step_duration"]
                     comparison_results[delay] = exp
     
+    # Also check checkpoints directory for experiments that might not have metrics directories
+    all_exp_dirs = set()
+    if metrics_dir.exists():
+        for exp_dir in metrics_dir.iterdir():
+            if exp_dir.is_dir():
+                all_exp_dirs.add(exp_dir.name)
+    if checkpoints_dir.exists():
+        for exp_dir in checkpoints_dir.iterdir():
+            if exp_dir.is_dir() and exp_dir.name.startswith("gym_mode_"):
+                all_exp_dirs.add(exp_dir.name)
+    
     # Load training metrics for each experiment
-    for exp_dir in sorted(metrics_dir.iterdir()):
-        if not exp_dir.is_dir():
-            continue
-        
+    for exp_dir_name in sorted(all_exp_dirs):
         # Extract step duration from directory name (e.g., "gym_mode_0.1s" -> 0.1)
         try:
-            delay_str = exp_dir.name.replace("gym_mode_", "").replace("s", "")
+            delay_str = exp_dir_name.replace("gym_mode_", "").replace("s", "")
             delay = float(delay_str)
         except (ValueError, AttributeError):
             continue
         
-        training_metrics = load_training_metrics(exp_dir)
-        if training_metrics is None:
-            continue
+        # Try to load training metrics (may not exist)
+        exp_dir = metrics_dir / exp_dir_name if metrics_dir.exists() else None
+        training_metrics = load_training_metrics(exp_dir) if exp_dir and exp_dir.exists() else None
         
         # Try to load evaluation metrics from comparison_results.json first
         eval_data = comparison_results.get(delay, None)
         
         # If not found in comparison_results.json, try loading from individual evaluation_metrics.json
         if eval_data is None:
-            eval_metrics_file = checkpoints_dir / exp_dir.name / "evaluation_metrics.json"
+            eval_metrics_file = checkpoints_dir / exp_dir_name / "evaluation_metrics.json"
             if eval_metrics_file.exists():
                 try:
                     with open(eval_metrics_file, 'r') as f:
@@ -77,20 +85,24 @@ def load_all_experiments(experiment_dir: Path) -> Dict:
                     
                     # Format like comparison_results.json
                     eval_data = {
-                        "experiment_name": exp_dir.name,
+                        "experiment_name": exp_dir_name,
                         "use_gym_mode": True,
                         "step_duration": step_duration,
-                        "checkpoint": str(checkpoints_dir / exp_dir.name / "sac_policy_final.pth"),
+                        "checkpoint": str(checkpoints_dir / exp_dir_name / "sac_policy_final.pth"),
                         **eval_metrics
                     }
                 except Exception as e:
                     print(f"Warning: Could not load evaluation metrics from {eval_metrics_file}: {e}")
                     eval_data = None
         
+        # Only skip if we have neither training nor evaluation metrics
+        if training_metrics is None and eval_data is None:
+            continue
+        
         results[delay] = {
             "training": training_metrics,
             "evaluation": eval_data,
-            "name": exp_dir.name
+            "name": exp_dir_name
         }
     
     return results
