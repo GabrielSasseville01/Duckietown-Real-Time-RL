@@ -677,7 +677,12 @@ def plot_performance_distributions(data: Dict, save_dir: Path):
                 box_data.append(final_rewards)
                 labels.append(f'{delay:.3f}s')
     if box_data:
-        bp = ax.boxplot(box_data, tick_labels=labels, patch_artist=True)
+        try:
+            bp = ax.boxplot(box_data, tick_labels=labels, patch_artist=True)
+        except TypeError:
+            # Fallback for older matplotlib versions
+            bp = ax.boxplot(box_data, labels=labels, patch_artist=True)
+            ax.set_xticklabels(labels)
         for patch in bp['boxes']:
             patch.set_facecolor('lightblue')
             patch.set_alpha(0.7)
@@ -699,7 +704,12 @@ def plot_performance_distributions(data: Dict, save_dir: Path):
                 box_data.append(rewards)
                 labels.append(f'{delay:.3f}s')
     if box_data:
-        bp = ax.boxplot(box_data, tick_labels=labels, patch_artist=True)
+        try:
+            bp = ax.boxplot(box_data, tick_labels=labels, patch_artist=True)
+        except TypeError:
+            # Fallback for older matplotlib versions
+            bp = ax.boxplot(box_data, labels=labels, patch_artist=True)
+            ax.set_xticklabels(labels)
         for patch in bp['boxes']:
             patch.set_facecolor('lightgreen')
             patch.set_alpha(0.7)
