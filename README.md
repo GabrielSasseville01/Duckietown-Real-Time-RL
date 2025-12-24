@@ -99,6 +99,108 @@ This will:
 - Save training metrics and plots to `training_logs/`
 - Save model checkpoints to `checkpoints/`
 
+## Simple Example: Complete Training, Evaluation, and Analysis Workflow
+
+This section provides a step-by-step walkthrough for training an SAC agent for 300 episodes, evaluating it, and generating plots. This is a complete example that demonstrates the full workflow.
+
+### Step 1: Launch the Matrix Engine
+
+Make sure the Duckietown Matrix is running (see [Quick Start](#quick-start) section above). Keep this terminal running:
+
+```bash
+dts matrix run --image duckietown/dt-duckiematrix:ente-amd64 --standalone --map ./dt-duckiematrix/assets/embedded_maps/loop --mode gym --no-pull
+```
+
+### Step 2: Train the SAC Agent (300 Episodes)
+
+In a new terminal (with virtual environment activated), navigate to the gym-duckiematrix directory:
+
+```bash
+cd gym-duckiematrix
+python src/sac_agent.py \
+    --num_episodes 300 \
+    --gym_mode \
+    --step_duration 0.1 \
+    --checkpoint_dir checkpoints/simple_example \
+    --metrics_dir training_logs/simple_example \
+    --save_freq 100
+```
+
+**What this does:**
+- Trains for 300 episodes in gym mode (faster simulation)
+- Uses a step duration of 0.1 seconds
+- Saves checkpoints every 100 episodes
+- Saves checkpoints to `checkpoints/simple_example/`
+- Saves training metrics and plots to `training_logs/simple_example/`
+
+**Output:**
+- Checkpoints: `checkpoints/simple_example/sac_policy_ep100.pth`, `sac_policy_ep200.pth`, `sac_policy_final.pth`, etc.
+- Training metrics: `training_logs/simple_example/metrics/training_metrics.json`
+- Training plots: `training_logs/simple_example/plots/` (rewards, lengths, losses, etc.)
+
+### Step 3: Evaluate the Trained Model
+
+After training completes, evaluate the final model:
+
+```bash
+python src/sac_inference.py \
+    --policy_checkpoint checkpoints/simple_example/sac_policy_final.pth \
+    --num_episodes 20 \
+    --max_steps 2000 \
+    --gym_mode \
+    --step_duration 0.1 \
+    --save_metrics \
+    --no_render
+```
+
+**What this does:**
+- Loads the final trained policy
+- Runs 20 evaluation episodes
+- Uses gym mode with 0.1s step duration
+- Saves evaluation metrics to JSON
+- Disables rendering for faster evaluation
+
+**Output:**
+- Evaluation metrics: `checkpoints/simple_example/evaluation_metrics.json`
+- Console output with average reward, episode lengths, and statistics
+
+### Step 4: Generate and View Training Plots
+
+If you want to regenerate or view the training plots:
+
+```bash
+python src/plot_metrics.py \
+    --metrics_file training_logs/simple_example/metrics/training_metrics.json \
+    --save_dir training_logs/simple_example/plots
+```
+
+**What this generates:**
+- `rewards.png`: Episode reward over training
+- `lengths.png`: Episode length over training
+- `losses.png`: Q-function and policy losses
+- `alpha.png`: Temperature parameter (if using automatic alpha tuning)
+- `buffer_size.png`: Replay buffer size over time
+- `training_time.png`: Training time metrics
+
+### Summary
+
+After completing this example, you will have:
+1. ✅ A trained SAC agent (300 episodes)
+2. ✅ Model checkpoints saved at intervals
+3. ✅ Training metrics and plots
+4. ✅ Evaluation results with performance statistics
+
+**Expected results:**
+- Training typically takes 6-10 hours for 300 episodes (depending on hardware)
+- Average evaluation reward should improve over training (typical range: 10-20)
+- Episodes should approach maximum length (2000 steps) as the agent learns
+
+**Next steps:**
+- Experiment with different hyperparameters (see [Custom Hyperparameters](#custom-hyperparameters))
+- Try training with action conditioning: add `--condition_on_prev_action` flag
+- Run longer training: increase `--num_episodes` to 500 or 1000
+- Explore delay experiments: see [Delay Experiments](#delay-experiments) section
+
 ## Training
 
 ### Basic Training Command
