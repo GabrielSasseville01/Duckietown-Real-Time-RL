@@ -608,3 +608,21 @@ html {
     text-decoration: underline;
 }
 
+.plot-img {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.plot-img-fallback {
+  max-width: 900px;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
