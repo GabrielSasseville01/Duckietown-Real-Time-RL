@@ -4,6 +4,7 @@ Loads all metrics and generates analysis plots and tables.
 """
 
 import json
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -20,6 +21,38 @@ def load_training_metrics(metrics_dir: Path) -> Optional[Dict]:
         return None
     with open(metrics_file, 'r') as f:
         return json.load(f)
+
+
+def infer_episodes_from_checkpoints(checkpoints_dir: Path, exp_name: str) -> Optional[int]:
+    """Infer number of training episodes from checkpoint filenames when metrics file is missing."""
+    checkpoint_dir = checkpoints_dir / exp_name
+    if not checkpoint_dir.exists():
+        return None
+    
+    # Look for checkpoint files matching pattern sac_policy_ep{num}.pth or sac_policy_final.pth
+    max_episode = 0
+    for file in checkpoint_dir.glob("sac_policy_*.pth"):
+        match = re.search(r'ep(\d+)', file.name)
+        if match:
+            episode = int(match.group(1))
+            max_episode = max(max_episode, episode)
+        elif 'final' in file.name:
+            # If final checkpoint exists, training completed, but we need to find the episode count
+            # Check other checkpoint files
+            pass
+    
+    # If we found checkpoints but no episode numbers, check if final exists
+    # This suggests training completed, but we can't determine exact episode count
+    if max_episode > 0:
+        return max_episode
+    
+    # If final checkpoint exists but no numbered checkpoints, we can't determine episodes
+    final_checkpoint = checkpoint_dir / "sac_policy_final.pth"
+    if final_checkpoint.exists():
+        # Return None to indicate training happened but we don't know episode count
+        return None
+    
+    return None
 
 
 def load_all_experiments(experiment_dir: Path) -> Dict:
@@ -99,10 +132,16 @@ def load_all_experiments(experiment_dir: Path) -> Dict:
         if training_metrics is None and eval_data is None:
             continue
         
+        # If training metrics are missing but checkpoints exist, try to infer episode count
+        inferred_episodes = None
+        if training_metrics is None and checkpoints_dir.exists():
+            inferred_episodes = infer_episodes_from_checkpoints(checkpoints_dir, exp_dir_name)
+        
         results[delay] = {
             "training": training_metrics,
             "evaluation": eval_data,
-            "name": exp_dir_name
+            "name": exp_dir_name,
+            "inferred_episodes": inferred_episodes
         }
     
     return results
@@ -448,29 +487,48 @@ def plot_loss_convergence(data: Dict, save_dir: Path):
     loss_types = [
         ("q1_losses", "Q1 Loss (Critic)", axes[0, 0]),
         ("q2_losses", "Q2 Loss (Critic)", axes[0, 1]),
-        ("policy_losses", "Policy Loss (Actor)", axes[1, 0]),
+        ("policy_losses", "Policy Loss |Actor| (Absolute)", axes[1, 0]),
         ("alpha_losses", "Alpha Loss (Temperature)", axes[1, 1])
     ]
     
     for loss_key, loss_name, ax in loss_types:
         for delay, color in zip(delays, colors):
             training = data[delay]["training"]
-            if training and "episode_metrics" in training and "losses" in training["episode_metrics"]:
-                losses = training["episode_metrics"]["losses"].get(loss_key, [])
-                if losses:
-                    # Smooth with moving average
-                    window = min(20, len(losses) // 10)
-                    if window > 1:
-                        smoothed = pd.Series(losses).rolling(window=window, center=True).mean()
-                        ax.plot(losses, alpha=0.2, color=color, linewidth=0.5)
-                        ax.plot(smoothed, label=f'{delay:.3f}s', color=color, linewidth=2)
+            if training and "step_metrics" in training:
+                losses = training["step_metrics"].get(loss_key, [])
+                if losses and len(losses) > 0:
+                    # Convert to numpy array and filter out None/NaN values
+                    losses_array = np.array(losses)
+                    losses_array = losses_array[~np.isnan(losses_array)]
+                    
+                    # Policy loss can be negative in SAC, so use absolute value for log scale
+                    # or use linear scale. Let's use absolute value to keep log scale consistency
+                    if loss_key == "policy_losses":
+                        # For policy loss, plot absolute value since it's typically negative
+                        losses_array = np.abs(losses_array)
+                        # Filter out zeros
+                        losses_array = losses_array[losses_array > 0]
                     else:
-                        ax.plot(losses, label=f'{delay:.3f}s', color=color, linewidth=1.5)
+                        # For other losses (Q1, Q2, Alpha), filter out non-positive values
+                        losses_array = losses_array[losses_array > 0]
+                    
+                    if len(losses_array) > 0:
+                        # Smooth with moving average
+                        window = min(100, len(losses_array) // 10)
+                        if window > 1:
+                            smoothed = pd.Series(losses_array).rolling(window=window, center=True).mean()
+                            # Only plot if we have enough points
+                            if len(smoothed.dropna()) > 0:
+                                ax.plot(losses_array, alpha=0.2, color=color, linewidth=0.5)
+                                ax.plot(smoothed, label=f'{delay:.3f}s', color=color, linewidth=2)
+                        else:
+                            ax.plot(losses_array, label=f'{delay:.3f}s', color=color, linewidth=1.5)
         
-        ax.set_xlabel('Episode', fontsize=12)
+        ax.set_xlabel('Training Step', fontsize=12)
         ax.set_ylabel('Loss', fontsize=12)
         ax.set_title(loss_name, fontsize=14, fontweight='bold')
-        ax.legend(loc='best', ncol=2, fontsize=8)
+        if ax.get_legend_handles_labels()[0]:  # Only add legend if there are labels
+            ax.legend(loc='best', ncol=2, fontsize=8)
         ax.grid(True, alpha=0.3)
         ax.set_yscale('log')
     
@@ -505,7 +563,12 @@ def create_summary_table(data: Dict, save_dir: Path):
                 row["Max Reward"] = "N/A"
                 row["Final Avg Length"] = "N/A"
         else:
-            row["Training Episodes"] = 0
+            # Try to infer from checkpoints if available
+            inferred_episodes = data[delay].get("inferred_episodes")
+            if inferred_episodes is not None:
+                row["Training Episodes"] = inferred_episodes
+            else:
+                row["Training Episodes"] = 0
             row["Final Avg Reward"] = "N/A"
             row["Max Reward"] = "N/A"
             row["Final Avg Length"] = "N/A"
@@ -614,7 +677,7 @@ def plot_performance_distributions(data: Dict, save_dir: Path):
                 box_data.append(final_rewards)
                 labels.append(f'{delay:.3f}s')
     if box_data:
-        bp = ax.boxplot(box_data, labels=labels, patch_artist=True)
+        bp = ax.boxplot(box_data, tick_labels=labels, patch_artist=True)
         for patch in bp['boxes']:
             patch.set_facecolor('lightblue')
             patch.set_alpha(0.7)
@@ -636,7 +699,7 @@ def plot_performance_distributions(data: Dict, save_dir: Path):
                 box_data.append(rewards)
                 labels.append(f'{delay:.3f}s')
     if box_data:
-        bp = ax.boxplot(box_data, labels=labels, patch_artist=True)
+        bp = ax.boxplot(box_data, tick_labels=labels, patch_artist=True)
         for patch in bp['boxes']:
             patch.set_facecolor('lightgreen')
             patch.set_alpha(0.7)
